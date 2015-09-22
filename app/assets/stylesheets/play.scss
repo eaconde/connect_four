@@ -1,3 +1,19 @@
-// Place all the styles related to the Play controller here.
-// They will automatically be included in application.css.
-// You can use Sass (SCSS) here: http://sass-lang.com/
+#game_board {
+  background-color: #738dc1;
+  text-align: center;
+
+  .box-col {
+    display: inline-block;
+  }
+  .box {
+    width: 50px;
+    height: 50px;
+    background:white;
+
+    border-radius: 45px;
+    margin: 3px;
+    text-align: center;
+    vertical-align: top;
+  }
+
+}

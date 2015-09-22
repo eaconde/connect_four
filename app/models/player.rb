@@ -1,12 +1,10 @@
 class Player < ActiveRecord::Base
   has_many :games
 
-  def self.create_fake
-    player = self.new
-		player.name = "Fake P2"
-		player.session_id = "second_player_application_generated"
-    player.save
-    player
+  def self.get_or_create_fake
+    self.find_or_create_by(name: "Fake P2") do |user|
+      user.session_id = "second_player_application_generated"
+    end
   end
 
 end

@@ -4,10 +4,11 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
 
   def current_user
+    session[:player_id] = nil
     if session[:player_id].nil? then
-      session[:player_id] = Player.create(:name => 'P1', :session_id => request.session_options[:id]).id
+      session[:player_id] = Player.find_or_create_by(:name => 'P1', :session_id => request.session_options[:id]).id
     end
 
-    return @current_user ||= Player.find_by_id(session[:player_id])
+    return Player.find_by_id(session[:player_id])
   end
 end

@@ -24,19 +24,26 @@ $ ->
   # METHODS
   # =============================================
 
-  getY = (x) ->
-    0
+  getY = (x_axis) ->
+    y_axis = 0
+    for y in [0..6]
+      result = moves.filter (value) ->
+        return value if value['x'] == x_axis && value['y'] == y
 
-  makeMove = (x) ->
-    y = getY(x)
-    console.log "VALID Y = #{y}"
+      if result.length == 0
+        y_axis = y
+        break
 
+    y_axis
+
+
+  makeMove = (x_axis) ->
+    y_axis = getY(x_axis)
+    
     moves.push
-      x: x
-      y: y
-
-    console.log "make move #{x} || #{JSON.stringify(moves)}"
-
+      'x': x_axis,
+      'y': y_axis,
+      'turn': 'p1'
 
   # =============================================
   # EVENTS

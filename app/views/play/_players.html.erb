@@ -1,12 +1,18 @@
-<div id="player1" class="playerBox">
-  Player 1
-  <p>
-    <%= @game.p1 %>
-  </p>
-</div>
-<div id="player2" class="playerBox">
-  Player 2
-  <p>
-    <%= @game.p2 %>
-  </p>
+<div class="">
+  <div id="player1" class="playerBox">
+    <h5>PLAYER 1</h5> <hr>
+    <p>Name: <%= @player1.name %></p>
+    <p>Wins: <strong>0</strong></p>
+  </div>
+  <div id="player2" class="playerBox">
+    <h5>PLAYER 2</h5> <hr>
+    <p>
+      <% if @player  %>
+        Name: <%= @player2.name %>
+      <% else  %>
+        Name: Waiting for Player 2...
+      <% end  %>
+    </p>
+    <p>Wins: <strong>0</strong></p>
+  </div>
 </div>

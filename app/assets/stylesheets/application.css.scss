@@ -1,4 +1,26 @@
 @import "bootstrap-sprockets";
 @import "bootstrap";
+
+$red: #d9534f;
+$blue: darken(#428bca, 6.5%);
+$green: #13a27b;
+$grey: #727c7d;
+$shadow: #676667;
+$bg: lighten(#000, 93.5%);
+
+
+
 @import "home";
 @import "play";
+
+
+
+#container {
+  margin: 40px auto;
+  width: 600px;
+  background-color: $bg;
+
+  .content {
+    margin: 0 auto;
+  }
+}

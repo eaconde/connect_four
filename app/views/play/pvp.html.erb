@@ -1,14 +1,17 @@
 
-<h1>Connect Four</h1>
-<h3><%= @game.title %></h3>
-<h5>ID: <%= @game.id %></h5>
-<h5>Session: <%= @game.session_id %></h5>
-
-
-<div id="game_board" class="">
-    <%= render 'play/players', :game => @game %>
+<div id="header">
+  <h1>Connect Four</h1>
+  <h3><%= @game.title %></h3>
+  <h5>Game ID: <%= @game.id %></h5>
+  <!-- <h5>Session: <%= @game.session_id %></h5> -->
 </div>
 
-<div id="game_board" class="">
-    <%= render 'play/board', :game => @game %>
+<div id="boardContent" class="row">
+  <div id="playersBoard" class="col-xs-3">
+      <%= render 'play/players', :game => @game %>
+  </div>
+
+  <div id="gameBoard" class="col-xs-9">
+      <%= render 'play/board', :game => @game %>
+  </div>
 </div>

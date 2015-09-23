@@ -96,20 +96,30 @@ $ ->
         updateMoveState()
 
 
+  getXPosition = (element, cursorLoc) ->
+    allowance = $('#chip').css('width').replace(/px/g, '') / 2
+    positionX = cursorLoc - element.position().left - allowance
+    width = element.css('width').replace(/px/g, '') - $('#chip').css('width').replace(/px/g, '')
+
+    positionX = if positionX < 0 then 0 else positionX
+    positionX = if positionX > width then width else positionX
 
   # =============================================
   # EVENTS
   # =============================================
-  $('#moveBox').on('mousemove', (e) ->
-    # TODO: implement limiting on x overlaps
+
+  $('#gameBoard').on('mousemove', (e) ->
+    position = getXPosition($('#gameBoard'), e.pageX)
+
     $('#chip').css
-      left:  e.clientX - 25
+      left: position
   );
 
-  $('#moveBox').on('click', (e) ->
-    allowance = $('#moveBox').css('margin-left')
-    allowance = allowance.replace(/px/g, '')
-    x_axis = e.clientX - allowance + 10
+  $('#gameBoard').on('click', (e) ->
+    # allowance = $('#moveBox').css('margin-left')
+    # allowance = allowance.replace(/px/g, '')
+    # position = getXPosition($('#gameBoard'))
+    x_axis = getXPosition($('#gameBoard'), e.pageX) #e.clientX - allowance #- 100
 
     # based on x axis, allot player move
     limit = Object.keys(x_axis_limits).length - 1

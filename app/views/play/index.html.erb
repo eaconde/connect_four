@@ -1,0 +1,29 @@
+<h1>Games Listing</h1>
+
+<%= link_to "New Game", 'play/pvp' %>
+
+<table>
+  <thead>
+    <tr>
+      <td>ID</td>
+      <td>Title</td>
+      <td>Player 1</td>
+      <td>Player 2</td>
+      <td>Action</td>
+    </tr>
+  </thead>
+  <tbody>
+    <% @games.each do |game| %>
+      <tr>
+        <td><%= game.id %></td>
+        <td><%= game.title %></td>
+        <td><%= game.p1 %></td>
+        <td><%= game.p2 %></td>
+        <td>
+          <%= link_to "Join Game", play_pvp_path %>
+        </td>
+      </tr>
+    <% end %>
+
+  </tbody>
+</table>

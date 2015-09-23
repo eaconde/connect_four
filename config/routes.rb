@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-
-  root to: 'home#index'
+  root to: 'play#index'
+  get 'play' => 'play#index'
   get 'play/pvp'
   scope "play/:id", defaults: {format: :json} do
     resource :moves, only: [:index, :create]

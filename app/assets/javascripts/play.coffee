@@ -22,7 +22,9 @@ $ ->
 
   players =
     'p1': p1ID
+    'p1-color': 'red'
     'p2': p2ID
+    'p2-color': 'yellow'
 
   # =============================================
   # METHODS
@@ -34,12 +36,15 @@ $ ->
     moveID = "#x#{x_axis}y#{y_axis}"
     console.log "setting move #{moveID}"
     $(moveID).css
-      background: 'red'
+      background: players[turn + '-color']
 
   # updateMoveState
   updateMoveState = () ->
-    turn = (turn == 'p1') ? 'p2' : 'p1'
-    console.log "change player #{turn}"
+    turn = if turn == 'p1' then 'p2' else 'p1'
+    console.log "NEXT TURN #{turn}"
+
+    $('#chip').css('background', players[turn + '-color'])
+
 
   # getY
   # -----------------------

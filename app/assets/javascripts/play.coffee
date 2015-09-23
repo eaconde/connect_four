@@ -12,18 +12,37 @@ $ ->
     x4: 250,
     x5: 300
 
-  x_tiles =
-    x0: '', x1: '', x2: '', x3: '', x4: '', x5: '', x6: ''
-  y_tiles =
-    x0: '', x1: '', x2: '', x3: '', x4: '', x5: ''
-
-  # { x: 0, y: 0, move: 'p1' }
   moves = []
+  turn = 'p1'
+
+  gameID = gon.game.gameID
+  p1ID = gon.game.p1
+  p2ID = gon.game.p2
+  gameData = gon.game
+
+  players =
+    'p1': p1ID
+    'p2': p2ID
 
   # =============================================
   # METHODS
   # =============================================
 
+  # setMove
+  # -----------------------
+  setMoveToUI = (x_axis, y_axis) ->
+    moveID = "#x#{x_axis}y#{y_axis}"
+    console.log "setting move #{moveID}"
+    $(moveID).css
+      background: 'red'
+
+  # updateMoveState
+  updateMoveState = () ->
+    turn = (turn == 'p1') ? 'p2' : 'p1'
+    console.log "change player #{turn}"
+
+  # getY
+  # -----------------------
   getY = (x_axis) ->
     y_axis = 0
     for y in [0..6]
@@ -34,16 +53,36 @@ $ ->
         y_axis = y
         break
 
-    y_axis
+    return y_axis
 
-
+  # makeMove
+  # -----------------------
   makeMove = (x_axis) ->
     y_axis = getY(x_axis)
-    
-    moves.push
-      'x': x_axis,
-      'y': y_axis,
-      'turn': 'p1'
+    playerID = players[turn]
+    moveData =
+      game_id: gameID
+      x_pos: x_axis
+      y_pos: y_axis
+      player_id: playerID
+
+    $.ajax
+      method: 'POST'
+      url: "#{gameID}/moves"
+      dataType: 'JSON'
+      data:
+        move: moveData
+      success: (data) =>
+        console.log "data == #{JSON.stringify(data)}"
+        moves.push
+          'x': x_axis
+          'y': y_axis
+          'turn': 'p1'
+
+        setMoveToUI x_axis, y_axis
+        updateMoveState()
+
+
 
   # =============================================
   # EVENTS
@@ -64,16 +103,13 @@ $ ->
     x_pos = -1
 
     for i in [0..limit]
+      pad = 13*i
       c = 'x' + i
       n = 'x' + (i+1)
+      x_curr = x_axis_limits[c]+pad
+      x_next = x_axis_limits[n]+pad || x_axis
 
-      if i == 0 && x_axis <= x_axis_limits[c]
-        x_pos = 0
-        break
-      else if x_axis > x_axis_limits[c] && x_axis <= x_axis_limits[n]
-        x_pos = i
-        break
-      else if i == limit
+      if x_curr > x_axis && x_axis <= x_next
         x_pos = i
         break
 

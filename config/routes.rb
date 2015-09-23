@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :players
   root to: 'play#index'
   get 'play' => 'play#index'
   get 'play/pvp'

@@ -1,6 +1,11 @@
+
+
+
 <h1>Games Listing</h1>
 
-<%= link_to "New Game", 'play/pvp' %>
+<% if player_signed_in? %>
+  <%= link_to "New Game", 'play/pvp' %>
+<% end %>
 
 <table>
   <thead>
@@ -20,7 +25,10 @@
         <td><%= game.p1 %></td>
         <td><%= game.p2 %></td>
         <td>
-          <%= link_to "Join Game", play_pvp_path %>
+          <% if player_signed_in? %>
+            <%= link_to "Join Game", play_pvp_path %>
+          <% end %>
+
         </td>
       </tr>
     <% end %>

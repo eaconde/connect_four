@@ -48,3 +48,4 @@ gem 'autoprefixer-rails'
 gem 'font-awesome-sass'
 
 gem 'gon'
+gem 'devise'

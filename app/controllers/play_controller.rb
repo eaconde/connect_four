@@ -1,14 +1,15 @@
 class PlayController < ApplicationController
   before_action :set_game, only: [:join]
+
   def index
     @games = Game.all
   end
 
   def pvp
-    @p1 = current_user
+    @p1 = current_player
     p "PLAYER 1 === #{@p1.to_json}"
     # this will be replaced once multiplayer games are supported
-    @p2 = Player.get_or_create_fake
+    # @p2 = Player.get_or_create_fake
 
     @game = Game.new_game @p1 #, @p2)
     gon.game = @game

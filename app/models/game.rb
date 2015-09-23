@@ -9,8 +9,8 @@ class Game < ActiveRecord::Base
     # ie. /play/pvp?session_id=1234567890 <= loading game by session.
     # NOTE: design consideration. multiple sessions/player?
     session_id = SecureRandom.hex(32)
-
-		Game.find_or_create_by(:title => "#{player1.name} vs. #{player2.name}") do |game|
+    ##{player1.name} vs. #{player2.name}
+		Game.find_or_create_by(:title => "Waiting for opponent...") do |game|
       game.session_id = session_id
   		game.p1 = player1.id
   		# game.p2 = player2.id
@@ -18,6 +18,9 @@ class Game < ActiveRecord::Base
 	end
 
   def join(player2)
+    player1 = Player.find(self.p1)
+    player2 = Player.find(player2)
+    self.title = "#{player1.name} vs. #{player2.name}"
     self.p2 = player2
     self.save
   end

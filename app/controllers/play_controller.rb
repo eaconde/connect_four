@@ -17,9 +17,13 @@ class PlayController < ApplicationController
   end
 
   def join
-    @game = Game.join play_params[:p2]
-    gon.game = @game
-    @game
+    if @game.join play_params[:p2]
+      gon.game = @game
+      broadcast '/player/join', @game
+      render 'play/pvp'
+    else
+      render json: @game.errors, status: :unprocessable_entity
+    end
   end
 
   private

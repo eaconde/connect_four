@@ -1,6 +1,4 @@
 
-
-
 <h1>Games Listing</h1>
 
 <% if player_signed_in? %>
@@ -18,6 +16,7 @@
     </tr>
   </thead>
   <tbody>
+
     <% @games.each do |game| %>
       <tr>
         <td><%= game.id %></td>
@@ -26,7 +25,7 @@
         <td><%= game.p2 %></td>
         <td>
           <% if player_signed_in? %>
-            <%= link_to "Join Game", play_pvp_path %>
+            <%= link_to "Join Game", play_join_path(play: { p2: current_player.id }, id: game.id), method: :post %>
           <% end %>
 
         </td>

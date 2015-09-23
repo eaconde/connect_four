@@ -4,19 +4,17 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_filter :configure_permitted_parameters, if: :devise_controller?
 
-    protected
+  def broadcast(channel, data)
+    message = {:channel => channel, :data => data, :ext => {:auth_token => 'anything'}}
+    uri = URI.parse("http://faye-cedar.herokuapp.com/faye")
+    Net::HTTP.post_form(uri, :message => message.to_json)
+  end
 
-    def configure_permitted_parameters
-      devise_parameter_sanitizer.for(:sign_up) << :name
-      devise_parameter_sanitizer.for(:account_update) << :name
-    end
+  protected
 
-  # def current_user
-  #   session[:player_id] = nil
-  #   if session[:player_id].nil? then
-  #     session[:player_id] = Player.find_or_create_by(:name => 'Player 1', :session_id => request.session_options[:id]).id
-  #   end
-  #
-  #   return Player.find_by_id(session[:player_id])
-  # end
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.for(:sign_up) << :name
+    devise_parameter_sanitizer.for(:account_update) << :name
+  end
+
 end

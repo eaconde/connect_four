@@ -15,16 +15,24 @@ $ ->
   moves = []
   turn = 'p1'
 
-  gameID = gon.game.gameID
-  p1ID = gon.game.p1
-  p2ID = gon.game.p2
-  gameData = gon.game
+  if gon.game
+    gameID = gon.game.gameID
+    p1ID = gon.game.p1
+    p2ID = gon.game.p2
+    gameData = gon.game
 
   players =
     'p1': p1ID
     'p1-color': 'red'
     'p2': p2ID
     'p2-color': 'yellow'
+
+  faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
+  faye.subscribe("/player/join", (data) ->
+    console.log "data from realtime == #{data}"
+    # updateLayout
+    # allowTurns
+  )
 
   # =============================================
   # METHODS

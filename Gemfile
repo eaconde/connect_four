@@ -49,3 +49,4 @@ gem 'font-awesome-sass'
 
 gem 'gon'
 gem 'devise'
+gem 'faye'

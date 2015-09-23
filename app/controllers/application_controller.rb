@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
   def current_user
     session[:player_id] = nil
     if session[:player_id].nil? then
-      session[:player_id] = Player.find_or_create_by(:name => 'P1', :session_id => request.session_options[:id]).id
+      session[:player_id] = Player.find_or_create_by(:name => 'Player 1', :session_id => request.session_options[:id]).id
     end
 
     return Player.find_by_id(session[:player_id])

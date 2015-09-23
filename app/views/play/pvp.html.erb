@@ -1,4 +1,8 @@
-<h1>Play#index</h1>
+
+<h1>Connect Four</h1>
+<h3><%= @game.title %></h3>
+<h5>ID: <%= @game.session_id %></h5>
+
 
 <div id="game_board" class="">
     <%= render 'play/players', :game => @game %>

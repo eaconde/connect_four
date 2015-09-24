@@ -8,17 +8,35 @@ class PlayController < ApplicationController
   def pvp
     @player1 = current_player
     @game = Game.new_game @player1
-    gon.player1 = @p1
-    gon.game = @game
+    gon.push({
+      player1: @player1,
+      game: @game
+    })
+    # gon.watch.player1 = @player1
+    # gon.watch.game = @game
     @game
   end
 
   def join
     if @game.join play_params[:p2]
-      gon.game = @game
+      @player1 = Player.find(@game.p1)
       @player2 = Player.find(play_params[:p2])
-      gon.player2 = @player2
-      broadcast '/player/join', @game
+      gon.push({
+        player1: @player1,
+        player2: @player2,
+        game: @game
+      })
+      # gon.watch.player1 = @player1
+      # gon.watch.player2 = @player2
+      # gon.watch.game = @game
+
+      message = {
+        player1: @player1,
+        player2: @player2,
+        game: @game
+      }
+
+      broadcast '/player/join', message
       render 'play/pvp'
     else
       render json: @game.errors, status: :unprocessable_entity

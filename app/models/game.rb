@@ -17,11 +17,11 @@ class Game < ActiveRecord::Base
     end
 	end
 
-  def join(player2)
+  def join(pID)
     player1 = Player.find(self.p1)
-    player2 = Player.find(player2)
+    player2 = Player.find(pID)
     self.title = "#{player1.name} vs. #{player2.name}"
-    self.p2 = player2
+    self.p2 = player2.id
     self.save
   end
 end

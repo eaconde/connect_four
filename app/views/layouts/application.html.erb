@@ -1,15 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ConnectFour</title>
+  <title>Connect Four</title>
   <!-- <%= include_gon %> -->
-  <%= Gon::Base.render_data %>
+  <!-- Gon::Base.render_data -->
+
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'http://faye-cedar.herokuapp.com/faye.js' %>
   <%= csrf_meta_tags %>
 </head>
 <body>
+  <%= include_gon %>
+  <!-- (:init => true) -->
+  <!-- class="overlay" -->
+  <div id="displaybox" class="hidden">
+    <div id="loader" class="">
+        <i class="fa fa-spinner fa-spin"></i>
+    </div>
+
+  </div>
   <div id="container">
     <div class="">
       <% if notice %>

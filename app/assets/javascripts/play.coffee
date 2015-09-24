@@ -1,6 +1,6 @@
 
 
-$ ->
+ready = () ->
   # =============================================
   # VARIABLES
   # =============================================
@@ -12,27 +12,61 @@ $ ->
     x4: 250,
     x5: 300
 
+
   moves = []
   turn = 'p1'
+  playing_as = ''
 
   if gon.game
     gameID = gon.game.gameID
     p1ID = gon.game.p1
     p2ID = gon.game.p2
+    player1 = gon.player1
     gameData = gon.game
 
   players =
     'p1': p1ID
-    'p1-color': 'red'
+    'p1-color': '#d9534f'
     'p2': p2ID
-    'p2-color': 'yellow'
+    'p2-color': '#cfeb22'
 
   faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
   faye.subscribe("/player/join", (data) ->
-    console.log "data from realtime == #{data}"
+    player1 = data.player1
+    player2 = data.player2
+    gameData = data.game
+
+    p2ID = player2.id
+    gon.player2 = player2
+    gon.gameData = gameData
+    console.log "realtime data P1  == #{JSON.stringify(data.player1)}"
+    console.log "realtime data P2 == #{JSON.stringify(data.player2)}"
+    console.log "realtime data GAME == #{JSON.stringify(data.game)}"
+
+
     # updateLayout
     # allowTurns
+    # $('#displaybox').removeClass('overlay')
+    # $('.fa').addClass('hidden')
+    enableUI()
+    console.log "HEADER @ #{$('#header h3:first').text()}"
+    $('#player2 p:first').text("Name: #{player2.name}")
+    $('#header h3:first').text(gameData.title)
   )
+
+  # =============================================
+  # UTILITY
+  # =============================================
+
+  enableUI = () ->
+    $('#displaybox').removeClass('overlay').addClass('hidden')
+    $('.fa').addClass('hidden')
+
+  disableUI = () ->
+    $('#displaybox').removeClass('hidden').addClass('overlay')
+    $('.fa').removeClass('hidden')
+
+
 
   # =============================================
   # METHODS
@@ -44,14 +78,14 @@ $ ->
     moveID = "#x#{x_axis}y#{y_axis}"
     console.log "setting move #{moveID}"
     $(moveID).css
-      background: players[turn + '-color']
+      background: players[playing_as + '-color']
 
   # updateMoveState
   updateMoveState = () ->
     turn = if turn == 'p1' then 'p2' else 'p1'
     console.log "NEXT TURN #{turn}"
 
-    $('#chip').css('background', players[turn + '-color'])
+    # $('#chip').css('background', players[turn + '-color'])
 
 
   # getY
@@ -157,4 +191,21 @@ $ ->
 
   );
 
+
+  do ->
+    if p2ID == null
+      # New game
+      playing_as = 'p1'
+      $('#displaybox').removeClass().addClass('overlay')
+    else
+      # Set p2 specific vars
+      playing_as = 'p2'
+      $('#chip').css
+        background: players[playing_as + '-color'] + ' !important'
+        # P1 Turn
+        # $('#displaybox').removeClass().addClass('overlay')
+
   return;
+
+$(document).ready(ready);
+$(document).on('page:load', ready);

@@ -1,4 +1,23 @@
 
+<div id="modal-gameover" class="modal modal-message modal-info fade" style="z-index: 12000" aria-hidden="true">
+  <!--  -->
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <i class="fa fa-exclamation-triangle"></i>
+      </div>
+      <div class="modal-body">
+        <strong>Player X Wins!</strong>
+      </div>
+      <div class="modal-footer">
+        <%= link_to "Leave", root_path, class: "btn btn-warning", id: "leaveGame" %>
+        <button type="button" class="btn btn-success" data-dismiss="modal" id="newGame">New Game</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id="header">
   <h1>Connect Four</h1>
   <h3><%= @game.title %></h3>

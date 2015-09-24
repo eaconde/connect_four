@@ -25,9 +25,13 @@
         <td><%= game.p2 %></td>
         <td>
           <% if player_signed_in? %>
-            <%= link_to "Join Game", play_join_path(play: { p2: current_player.id }, id: game.id), method: :post, class: 'btn btn-primary' %>
+            <% if joinable game  %>
+              <!-- TODO: If same player, option to reload instead -->
+              <%= link_to "Join Game", play_join_path(play: { p2: current_player.id }, id: game.id), method: :post, class: 'btn btn-primary' %>
+            <% else  %>
+              <span>Game Full</span>
+            <% end  %>
           <% end %>
-
         </td>
       </tr>
     <% end %>

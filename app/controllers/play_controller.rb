@@ -12,8 +12,6 @@ class PlayController < ApplicationController
       player1: @player1,
       game: @game
     })
-    # gon.watch.player1 = @player1
-    # gon.watch.game = @game
     @game
   end
 
@@ -26,9 +24,6 @@ class PlayController < ApplicationController
         player2: @player2,
         game: @game
       })
-      # gon.watch.player1 = @player1
-      # gon.watch.player2 = @player2
-      # gon.watch.game = @game
 
       message = {
         player1: @player1,
@@ -36,7 +31,7 @@ class PlayController < ApplicationController
         game: @game
       }
 
-      broadcast '/player/join', message
+      broadcast "/play/#{@game.id}/join", message
       render 'play/pvp'
     else
       render json: @game.errors, status: :unprocessable_entity

@@ -34,7 +34,7 @@ ready = () ->
 
   faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
 
-  faye.subscribe("/player/join", (data) ->
+  faye.subscribe("/play/#{gameID}/join", (data) ->
     player1 = data.player1
     player2 = data.player2
     gameData = data.game
@@ -82,9 +82,9 @@ ready = () ->
   # METHODS
   # =============================================
 
-  # -----------------------
+  # **********************************************************
   # WINNER VERIFICATION - START
-  # -----------------------
+  # **********************************************************
 
   # horizontalWin
   # -----------------------
@@ -92,17 +92,19 @@ ready = () ->
     # fixed Y position only
     y = parseInt(pos.y_pos)
     pID = pos.player_id
-    console.log "horizontalWin for #{y} @ #{pID}"
     matchCtr = 0
+    console.log "horizontalWin for #{y} @ #{pID}"
     for ctr in [0..6]
       result = moves.filter (move) ->
-        # capture move if exist
         return (parseInt(move.y_pos) == y && parseInt(move.x_pos) == ctr && move.player_id == pID)
 
-      unless result
-        return false
+      if result.length == 1
+        matchCtr += 1
+        return true if matchCtr == 4
+      else
+        matchCtr = 0
 
-    return true
+    return false
 
   # verticalWin
   # -----------------------
@@ -110,17 +112,22 @@ ready = () ->
     # fixed X position only
     x = parseInt(pos.x_pos)
     pID = pos.player_id
-    console.log "verticalWin for #{x} @ #{pID}"
     matchCtr = 0
     for ctr in [0..5]
       result = moves.filter (move) ->
         # capture move if exist
         return (parseInt(move.y_pos) == ctr && parseInt(move.x_pos) == x && move.player_id == pID)
 
-      unless result
-        return false
+      if result.length == 1
+        matchCtr += 1
+        return true if matchCtr == 4
+      else
+        matchCtr = 0
 
     return true
+
+  diagonalWin = (pos) ->
+    diagonalLtoRWin(pos) || diagonalRtoLWin(pos)
 
   # diagonalLtoRWin
   # -----------------------
@@ -135,22 +142,22 @@ ready = () ->
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    state = false
-    state = true if horizontalWin(pos) || verticalWin(pos) || diagonalWin(pos)
-    return state
+    horizontalWin(pos) #|| verticalWin(pos) || diagonalWin(pos)
+
 
   # checkTie
   # -----------------------
 
-  # -----------------------
+  # **********************************************************
   # WINNER VERIFICATION - END
-  # -----------------------
+  # **********************************************************
 
   updateScores = () ->
     console.log "update scores"
 
   showModal = () ->
     console.log "display modal. show summary and option to reset game or leave"
+    $('#modal-gameover').modal('show')
 
   setEndUI = () ->
     updateScores()
@@ -158,8 +165,13 @@ ready = () ->
 
   verifyGameState = (pos) ->
     if checkWinner(pos)
-      console.log "GAME OVER"
-      setEndUI()
+      $.ajax
+        method: 'PUT'
+        url: "play/#{gameID}/complete"
+        dataType: 'JSON'
+        success: (data) =>
+          console.log "GAME OVER"
+          setEndUI()
 
 
   # setMove
@@ -213,6 +225,8 @@ ready = () ->
         # switch player
         updateMoveState()
         verifyGameState(data)
+
+
 
 
   getXPosition = (element, cursorLoc) ->
@@ -274,9 +288,9 @@ ready = () ->
 
 
   do ->
-    # console.log "#|| #{(typeof p2ID == 'undefined' || p2ID == null) && gameData != undefined}"
     subscribe()
     if gameData == undefined
+      # in index page
       enableUI()
     else if (typeof p2ID == 'undefined' || p2ID == null)
       # New game
@@ -290,11 +304,10 @@ ready = () ->
       playing_vs = 'p1'
       playing_as_id = p2ID
       playing_vs_id = p1ID
-      # console.log "playing as #{playing_as} with color #{players[playing_as + '-color']}"
       $('#chip').css
         background: players[playing_as + '-color'];
-        # P1 Turn
-        disableUI()
+      # P1 Turn
+      disableUI()
 
   return;
 

@@ -14,11 +14,13 @@ ready = () ->
 
 
   moves = []
-  turn = 'p1'
   playing_as = ''
+  playing_as_id = 0
+  playing_vs = ''
+  playing_vs_id = 0
 
   if gon.game
-    gameID = gon.game.gameID
+    gameID = gon.game.id
     p1ID = gon.game.p1
     p2ID = gon.game.p2
     player1 = gon.player1
@@ -31,28 +33,37 @@ ready = () ->
     'p2-color': '#cfeb22'
 
   faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
+
   faye.subscribe("/player/join", (data) ->
     player1 = data.player1
     player2 = data.player2
     gameData = data.game
 
     p2ID = player2.id
+    playing_vs_id = p2ID
     gon.player2 = player2
     gon.gameData = gameData
-    console.log "realtime data P1  == #{JSON.stringify(data.player1)}"
-    console.log "realtime data P2 == #{JSON.stringify(data.player2)}"
-    console.log "realtime data GAME == #{JSON.stringify(data.game)}"
 
-
-    # updateLayout
-    # allowTurns
-    # $('#displaybox').removeClass('overlay')
-    # $('.fa').addClass('hidden')
     enableUI()
-    console.log "HEADER @ #{$('#header h3:first').text()}"
+
     $('#player2 p:first').text("Name: #{player2.name}")
     $('#header h3:first').text(gameData.title)
   )
+
+  subscribe = () ->
+    if gameID != undefined
+      faye.subscribe("/game/#{gameID}/turn", (moveData) ->
+        # console.log "processing from faye... #{moveData.player_id != playing_as_id} >> #{moveData.player_id} << #{playing_as_id}"
+        processOpponentTurn(moveData) if moveData.player_id != playing_as_id
+        moves.push moveData
+      )
+
+  processOpponentTurn = (moveData) ->
+    setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
+    console.log "setting move by #{moveData.player_id} to X:#{moveData.x_pos} and Y:#{moveData.y_pos}"
+    gameData = gameData
+    gon.gameData = gameData
+    enableUI()
 
   # =============================================
   # UTILITY
@@ -74,27 +85,28 @@ ready = () ->
 
   # setMove
   # -----------------------
-  setMoveToUI = (x_axis, y_axis) ->
+  setMoveToUI = (x_axis, y_axis, pmove) ->
+    pmove = if (pmove == undefined) then playing_as else pmove
     moveID = "#x#{x_axis}y#{y_axis}"
-    console.log "setting move #{moveID}"
     $(moveID).css
-      background: players[playing_as + '-color']
+      background: players[pmove + '-color']
 
   # updateMoveState
   updateMoveState = () ->
-    turn = if turn == 'p1' then 'p2' else 'p1'
-    console.log "NEXT TURN #{turn}"
-
-    # $('#chip').css('background', players[turn + '-color'])
+    disableUI()
 
 
   # getY
   # -----------------------
   getY = (x_axis) ->
+    console.log "GETTING Y for X:#{typeof x_axis}"
     y_axis = 0
     for y in [0..6]
-      result = moves.filter (value) ->
-        return value if value['x'] == x_axis && value['y'] == y
+      result = moves.filter (move) ->
+        console.log "MOVE IS === #{JSON.stringify(move)} || #{typeof move.x_pos} <<>> #{typeof move.y_pos} || #{typeof y}"
+        if parseInt(move.x_pos) == x_axis && parseInt(move.y_pos) == y
+          console.log "RETURNING MOVE! #{move}"
+          return move
 
       if result.length == 0
         y_axis = y
@@ -106,7 +118,7 @@ ready = () ->
   # -----------------------
   makeMove = (x_axis) ->
     y_axis = getY(x_axis)
-    playerID = players[turn]
+    playerID = players[playing_as]
     moveData =
       game_id: gameID
       x_pos: x_axis
@@ -120,13 +132,9 @@ ready = () ->
       data:
         move: moveData
       success: (data) =>
-        console.log "data == #{JSON.stringify(data)}"
-        moves.push
-          'x': x_axis
-          'y': y_axis
-          'turn': 'p1'
-
-        setMoveToUI x_axis, y_axis
+        moves.push data
+        setMoveToUI x_axis, y_axis, playing_as
+        # switch player
         updateMoveState()
 
 
@@ -150,10 +158,7 @@ ready = () ->
   );
 
   $('#gameBoard').on('click', (e) ->
-    # allowance = $('#moveBox').css('margin-left')
-    # allowance = allowance.replace(/px/g, '')
-    # position = getXPosition($('#gameBoard'))
-    x_axis = getXPosition($('#gameBoard'), e.pageX) #e.clientX - allowance #- 100
+    x_axis = getXPosition($('#gameBoard'), e.pageX)
 
     # based on x axis, allot player move
     limit = Object.keys(x_axis_limits).length - 1
@@ -171,7 +176,6 @@ ready = () ->
         break
 
     makeMove(x_pos)
-    # switch player
 
 
     # # TODO: animate chip
@@ -193,17 +197,27 @@ ready = () ->
 
 
   do ->
-    if p2ID == null
+    # console.log "#|| #{(typeof p2ID == 'undefined' || p2ID == null) && gameData != undefined}"
+    subscribe()
+    if gameData == undefined
+      enableUI()
+    else if (typeof p2ID == 'undefined' || p2ID == null)
       # New game
       playing_as = 'p1'
+      playing_vs = 'p2'
+      playing_as_id = p1ID
       $('#displaybox').removeClass().addClass('overlay')
     else
       # Set p2 specific vars
       playing_as = 'p2'
+      playing_vs = 'p1'
+      playing_as_id = p2ID
+      playing_vs_id = p1ID
+      console.log "playing as #{playing_as} with color #{players[playing_as + '-color']}"
       $('#chip').css
-        background: players[playing_as + '-color'] + ' !important'
+        background: players[playing_as + '-color']; #+ ' !important'
         # P1 Turn
-        # $('#displaybox').removeClass().addClass('overlay')
+        disableUI()
 
   return;
 

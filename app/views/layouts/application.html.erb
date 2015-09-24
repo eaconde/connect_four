@@ -11,9 +11,7 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-  <%= include_gon %>
-  <!-- (:init => true) -->
-  <!-- class="overlay" -->
+  <%= include_gon(:init => true, :watch => false) %>
   <div id="displaybox" class="hidden">
     <div id="loader" class="">
         <i class="fa fa-spinner fa-spin"></i>

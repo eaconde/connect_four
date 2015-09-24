@@ -24,4 +24,9 @@ class Game < ActiveRecord::Base
     self.p2 = player2.id
     self.save
   end
+
+  def complete winner_id
+    self.winner_id = winner_id
+    self.save
+  end
 end

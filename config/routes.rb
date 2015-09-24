@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   get 'play/pvp'
   # join game
   post 'play/join'
+  # finish game
+  put "play/:id/complete" => 'play#complete'
   # moves tracking
   scope "play/:id", defaults: {format: :json} do
     resource :moves, only: [:index, :create]

@@ -164,11 +164,16 @@ ready = () ->
     showModal()
 
   verifyGameState = (pos) ->
+    # TODO: handle draw
     if checkWinner(pos)
+      data =
+        winner_id: pos.player_id
       $.ajax
         method: 'PUT'
-        url: "play/#{gameID}/complete"
+        url: "#{gameID}/complete"
         dataType: 'JSON'
+        data:
+          play: data
         success: (data) =>
           console.log "GAME OVER"
           setEndUI()

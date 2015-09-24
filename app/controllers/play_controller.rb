@@ -1,5 +1,5 @@
 class PlayController < ApplicationController
-  before_action :set_game, only: [:join]
+  before_action :set_game, only: [:join, :complete]
 
   def index
     @games = Game.all
@@ -33,6 +33,14 @@ class PlayController < ApplicationController
 
       broadcast "/play/#{@game.id}/join", message
       render 'play/pvp'
+    else
+      render json: @game.errors, status: :unprocessable_entity
+    end
+  end
+
+  def complete
+    if @game.complete(play_params[:winner_id])
+      render json: @game, status: :ok, location: @recurring_promo
     else
       render json: @game.errors, status: :unprocessable_entity
     end

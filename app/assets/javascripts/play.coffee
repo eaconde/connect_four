@@ -53,14 +53,13 @@ ready = () ->
   subscribe = () ->
     if gameID != undefined
       faye.subscribe("/game/#{gameID}/turn", (moveData) ->
-        # console.log "processing from faye... #{moveData.player_id != playing_as_id} >> #{moveData.player_id} << #{playing_as_id}"
         processOpponentTurn(moveData) if moveData.player_id != playing_as_id
         moves.push moveData
       )
 
   processOpponentTurn = (moveData) ->
     setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
-    console.log "setting move by #{moveData.player_id} to X:#{moveData.x_pos} and Y:#{moveData.y_pos}"
+    # console.log "setting move by #{moveData.player_id} to X:#{moveData.x_pos} and Y:#{moveData.y_pos}"
     gameData = gameData
     gon.gameData = gameData
     enableUI()
@@ -83,6 +82,86 @@ ready = () ->
   # METHODS
   # =============================================
 
+  # -----------------------
+  # WINNER VERIFICATION - START
+  # -----------------------
+
+  # horizontalWin
+  # -----------------------
+  horizontalWin = (pos) ->
+    # fixed Y position only
+    y = parseInt(pos.y_pos)
+    pID = pos.player_id
+    console.log "horizontalWin for #{y} @ #{pID}"
+    matchCtr = 0
+    for ctr in [0..6]
+      result = moves.filter (move) ->
+        # capture move if exist
+        return (parseInt(move.y_pos) == y && parseInt(move.x_pos) == ctr && move.player_id == pID)
+
+      unless result
+        return false
+
+    return true
+
+  # verticalWin
+  # -----------------------
+  verticalWin = (pos) ->
+    # fixed X position only
+    x = parseInt(pos.x_pos)
+    pID = pos.player_id
+    console.log "verticalWin for #{x} @ #{pID}"
+    matchCtr = 0
+    for ctr in [0..5]
+      result = moves.filter (move) ->
+        # capture move if exist
+        return (parseInt(move.y_pos) == ctr && parseInt(move.x_pos) == x && move.player_id == pID)
+
+      unless result
+        return false
+
+    return true
+
+  # diagonalLtoRWin
+  # -----------------------
+  diagonalLtoRWin = (pos) ->
+    false
+
+  # diagonalRtoLWin
+  # -----------------------
+  diagonalRtoLWin = (pos) ->
+    false
+
+  # checkWinner
+  # -----------------------
+  checkWinner = (pos) ->
+    state = false
+    state = true if horizontalWin(pos) || verticalWin(pos) || diagonalWin(pos)
+    return state
+
+  # checkTie
+  # -----------------------
+
+  # -----------------------
+  # WINNER VERIFICATION - END
+  # -----------------------
+
+  updateScores = () ->
+    console.log "update scores"
+
+  showModal = () ->
+    console.log "display modal. show summary and option to reset game or leave"
+
+  setEndUI = () ->
+    updateScores()
+    showModal()
+
+  verifyGameState = (pos) ->
+    if checkWinner(pos)
+      console.log "GAME OVER"
+      setEndUI()
+
+
   # setMove
   # -----------------------
   setMoveToUI = (x_axis, y_axis, pmove) ->
@@ -99,13 +178,10 @@ ready = () ->
   # getY
   # -----------------------
   getY = (x_axis) ->
-    console.log "GETTING Y for X:#{typeof x_axis}"
     y_axis = 0
     for y in [0..6]
       result = moves.filter (move) ->
-        console.log "MOVE IS === #{JSON.stringify(move)} || #{typeof move.x_pos} <<>> #{typeof move.y_pos} || #{typeof y}"
         if parseInt(move.x_pos) == x_axis && parseInt(move.y_pos) == y
-          console.log "RETURNING MOVE! #{move}"
           return move
 
       if result.length == 0
@@ -136,6 +212,7 @@ ready = () ->
         setMoveToUI x_axis, y_axis, playing_as
         # switch player
         updateMoveState()
+        verifyGameState(data)
 
 
   getXPosition = (element, cursorLoc) ->
@@ -213,9 +290,9 @@ ready = () ->
       playing_vs = 'p1'
       playing_as_id = p2ID
       playing_vs_id = p1ID
-      console.log "playing as #{playing_as} with color #{players[playing_as + '-color']}"
+      # console.log "playing as #{playing_as} with color #{players[playing_as + '-color']}"
       $('#chip').css
-        background: players[playing_as + '-color']; #+ ' !important'
+        background: players[playing_as + '-color'];
         # P1 Turn
         disableUI()
 

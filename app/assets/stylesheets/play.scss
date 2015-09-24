@@ -20,7 +20,7 @@
 
   #gameBoard {
     width: 380px;
-    background-color: #738dc1;
+    background-color: $blue;
     text-align: center;
     margin: 0 auto;
     padding: 0px;
@@ -52,6 +52,10 @@
         margin: 3px;
         text-align: center;
         vertical-align: top;
+      }
+
+      .tagged {
+        
       }
     }
   }

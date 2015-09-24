@@ -2,17 +2,17 @@
 <h1>Games Listing</h1>
 
 <% if player_signed_in? %>
-  <%= link_to "New Game", play_pvp_path %>
+  <%= link_to "New Game", play_pvp_path, class: 'btn btn-primary' %>
 <% end %>
 
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
-      <td>ID</td>
-      <td>Title</td>
-      <td>Player 1</td>
-      <td>Player 2</td>
-      <td>Action</td>
+      <th>#</th>
+      <th>Title</th>
+      <th>Player 1</th>
+      <th>Player 2</th>
+      <th>Action</th>
     </tr>
   </thead>
   <tbody>
@@ -25,7 +25,7 @@
         <td><%= game.p2 %></td>
         <td>
           <% if player_signed_in? %>
-            <%= link_to "Join Game", play_join_path(play: { p2: current_player.id }, id: game.id), method: :post %>
+            <%= link_to "Join Game", play_join_path(play: { p2: current_player.id }, id: game.id), method: :post, class: 'btn btn-primary' %>
           <% end %>
 
         </td>

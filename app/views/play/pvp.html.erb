@@ -7,9 +7,10 @@
         <i class="fa fa-exclamation-triangle"></i>
       </div>
       <div class="modal-body">
-        <strong>Player X Wins!</strong>
+        <p>Player X Wins!</p>
       </div>
       <div class="modal-footer">
+        <!-- TODO: Should notify other player when left the game -->
         <%= link_to "Leave", root_path, class: "btn btn-warning", id: "leaveGame" %>
         <button type="button" class="btn btn-success" data-dismiss="modal" id="newGame">New Game</button>
       </div>

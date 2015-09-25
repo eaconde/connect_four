@@ -16,15 +16,19 @@ ready = () ->
   moves = []
   playing_as = ''
   playing_as_id = 0
+  playing_as_name = ''
   playing_vs = ''
   playing_vs_id = 0
+  playing_vs_name = ''
 
   if gon.game
+    gameData = gon.game
     gameID = gon.game.id
     p1ID = gon.game.p1
     p2ID = gon.game.p2
     player1 = gon.player1
-    gameData = gon.game
+    player2 = gon.player2 if gon.player2
+
 
   players =
     'p1': p1ID
@@ -41,6 +45,8 @@ ready = () ->
 
     p2ID = player2.id
     playing_vs_id = p2ID
+    playing_as_name = player1.name
+    playing_vs_name = player2.name
     gon.player2 = player2
     gon.gameData = gameData
 
@@ -50,16 +56,21 @@ ready = () ->
     $('#header h3:first').text(gameData.title)
   )
 
-  subscribe = () ->
+  faye.subscribe("/play/#{gameID}/completed", (data) ->
+    console.log "display winner!"
+    setEndUI(data.winner_id)
+  )
+
+  subscribeForTurns = () ->
     if gameID != undefined
       faye.subscribe("/game/#{gameID}/turn", (moveData) ->
-        processOpponentTurn(moveData) if moveData.player_id != playing_as_id
-        moves.push moveData
+        if parseInt(moveData.player_id) != playing_as_id
+          processOpponentTurn(moveData)
+          moves.push moveData
       )
 
   processOpponentTurn = (moveData) ->
     setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
-    # console.log "setting move by #{moveData.player_id} to X:#{moveData.x_pos} and Y:#{moveData.y_pos}"
     gameData = gameData
     gon.gameData = gameData
     enableUI()
@@ -70,11 +81,11 @@ ready = () ->
 
   enableUI = () ->
     $('#displaybox').removeClass('overlay').addClass('hidden')
-    $('.fa').addClass('hidden')
+    $('#loader > i').addClass('hidden')
 
   disableUI = () ->
     $('#displaybox').removeClass('hidden').addClass('overlay')
-    $('.fa').removeClass('hidden')
+    $('#loader > i').removeClass('hidden')
 
 
 
@@ -139,12 +150,13 @@ ready = () ->
   diagonalRtoLWin = (pos) ->
     false
 
+  # -----------------------
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    horizontalWin(pos) #|| verticalWin(pos) || diagonalWin(pos)
+    horizontalWin(pos) # || verticalWin(pos) || diagonalWin(pos)
 
-
+  # -----------------------
   # checkTie
   # -----------------------
 
@@ -152,16 +164,27 @@ ready = () ->
   # WINNER VERIFICATION - END
   # **********************************************************
 
-  updateScores = () ->
+  updateScores = (winner_id) ->
     console.log "update scores"
 
-  showModal = () ->
-    console.log "display modal. show summary and option to reset game or leave"
-    $('#modal-gameover').modal('show')
+  showWinnerModal = (winner_id) ->
+    player = if winner_id == playing_as_id then playing_as_name else playing_vs_name
+    color = players[player + "-color"]
+    console.log "Winner is #{player} with color #{color}!"
 
-  setEndUI = () ->
-    updateScores()
-    showModal()
+    $('.modal-header > i').css
+      "color": color
+    $('.modal-body > p').text("#{player} Wins!")
+    $('.modal-body > p').css
+      "color": color
+    $('#modal-gameover').modal(
+      backdrop: 'static',
+      keyboard: false
+    )
+
+  setEndUI = (winner_id) ->
+    updateScores(winner_id)
+    showWinnerModal(winner_id)
 
   verifyGameState = (pos) ->
     # TODO: handle draw
@@ -176,22 +199,25 @@ ready = () ->
           play: data
         success: (data) =>
           console.log "GAME OVER"
-          setEndUI()
+          setEndUI(data.winner_id)
 
 
-  # setMove
+  # -----------------------
+  # setMoveToUI
   # -----------------------
   setMoveToUI = (x_axis, y_axis, pmove) ->
-    pmove = if (pmove == undefined) then playing_as else pmove
     moveID = "#x#{x_axis}y#{y_axis}"
+    console.log "setting color for #{pmove}"
     $(moveID).css
       background: players[pmove + '-color']
 
+  # -----------------------
   # updateMoveState
+  # -----------------------
   updateMoveState = () ->
     disableUI()
 
-
+  # -----------------------
   # getY
   # -----------------------
   getY = (x_axis) ->
@@ -207,6 +233,7 @@ ready = () ->
 
     return y_axis
 
+  # -----------------------
   # makeMove
   # -----------------------
   makeMove = (x_axis) ->
@@ -233,7 +260,9 @@ ready = () ->
 
 
 
-
+  # -----------------------
+  # getXPosition
+  # -----------------------
   getXPosition = (element, cursorLoc) ->
     allowance = $('#chip').css('width').replace(/px/g, '') / 2
     positionX = cursorLoc - element.position().left - allowance
@@ -293,7 +322,7 @@ ready = () ->
 
 
   do ->
-    subscribe()
+    subscribeForTurns()
     if gameData == undefined
       # in index page
       enableUI()
@@ -309,6 +338,9 @@ ready = () ->
       playing_vs = 'p1'
       playing_as_id = p2ID
       playing_vs_id = p1ID
+      playing_as_name = player2.name
+      playing_vs_name = player1.name
+
       $('#chip').css
         background: players[playing_as + '-color'];
       # P1 Turn

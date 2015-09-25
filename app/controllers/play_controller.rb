@@ -40,6 +40,7 @@ class PlayController < ApplicationController
 
   def complete
     if @game.complete(play_params[:winner_id])
+      broadcast "/play/#{@game.id}/completed", @game
       render json: @game, status: :ok, location: @recurring_promo
     else
       render json: @game.errors, status: :unprocessable_entity

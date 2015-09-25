@@ -3,12 +3,18 @@ class PlayController < ApplicationController
 
   def index
     @games = Game.all
+    gon.games = @games
+    @games
   end
 
   def pvp
     @player1 = current_player
 
     @game = Game.new_game @player1
+    message = {
+      game: @game
+    }
+    broadcast "/play/new", message
     gon.push({
       player1: @player1,
       game: @game

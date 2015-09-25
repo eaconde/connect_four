@@ -21,6 +21,7 @@ ready = () ->
   playing_vs_id = 0
   playing_vs_name = ''
 
+  games = gon.games
   if gon.game
     gameData = gon.game
     gameID = gon.game.id
@@ -36,6 +37,12 @@ ready = () ->
     'p2': p2ID
     'p2-color': '#cfeb22'
 
+
+  # **********************************************************
+  # FAYE SUBSCRIPTIONS
+  # **********************************************************
+
+  # Faye Client
   faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
 
   faye.subscribe("/play/#{gameID}/join", (data) ->
@@ -56,6 +63,16 @@ ready = () ->
     $('#header h3:first').text(gameData.title)
   )
 
+
+  faye.subscribe("/play/new", (data) ->
+    console.log "FIRING NEW!!! CURRENT GAME == #{gon.game} || #{window.location.href}"
+    if gon.game == undefined && window.location.href == "http://localhost:3000/"
+      # console.log "#{window.location.href == "http://localhost:3000/"}"
+      # if window.location.href == "http://localhost:3000/"
+      console.log "reloading page!"
+      # location.reload(true)
+  )
+
   faye.subscribe("/play/#{gameID}/completed", (data) ->
     console.log "display winner!"
     setEndUI(data.winner_id)
@@ -69,11 +86,9 @@ ready = () ->
           moves.push moveData
       )
 
-  processOpponentTurn = (moveData) ->
-    setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
-    gameData = gameData
-    gon.gameData = gameData
-    enableUI()
+  # **********************************************************
+  # FAYE SUBSCRIPTIONS END
+  # **********************************************************
 
   # =============================================
   # UTILITY
@@ -89,14 +104,11 @@ ready = () ->
 
 
 
-  # =============================================
-  # METHODS
-  # =============================================
-
   # **********************************************************
   # WINNER VERIFICATION - START
   # **********************************************************
 
+  # -----------------------
   # horizontalWin
   # -----------------------
   horizontalWin = (pos) ->
@@ -117,6 +129,7 @@ ready = () ->
 
     return false
 
+  # -----------------------
   # verticalWin
   # -----------------------
   verticalWin = (pos) ->
@@ -137,14 +150,19 @@ ready = () ->
 
     return false
 
+  # -----------------------
+  # diagonalWin
+  # -----------------------
   diagonalWin = (pos) ->
     diagonalLtoRWin(pos) || diagonalRtoLWin(pos)
 
+  # -----------------------
   # diagonalLtoRWin
   # -----------------------
   diagonalLtoRWin = (pos) ->
     false
 
+  # -----------------------
   # diagonalRtoLWin
   # -----------------------
   diagonalRtoLWin = (pos) ->
@@ -163,6 +181,16 @@ ready = () ->
   # **********************************************************
   # WINNER VERIFICATION - END
   # **********************************************************
+
+  # =============================================
+  # METHODS
+  # =============================================
+
+  processOpponentTurn = (moveData) ->
+    setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
+    gameData = gameData
+    gon.gameData = gameData
+    enableUI()
 
   updateScores = (winner_id) ->
     console.log "update scores"
@@ -341,6 +369,7 @@ ready = () ->
       playing_vs = 'p2'
       playing_as_id = p1ID
       $('#displaybox').removeClass().addClass('overlay')
+      console.log "JS LOADED!"
     else
       # Set p2 specific vars
       playing_as = 'p2'

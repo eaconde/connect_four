@@ -7,6 +7,7 @@ class PlayController < ApplicationController
 
   def pvp
     @player1 = current_player
+
     @game = Game.new_game @player1
     gon.push({
       player1: @player1,

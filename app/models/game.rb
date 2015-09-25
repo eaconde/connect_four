@@ -1,6 +1,6 @@
 class Game < ActiveRecord::Base
   # hide old completed games
-  default_scope { where("p2 is ? and winner_id is ?", nil, nil).order('updated_at DESC') }
+  default_scope { where("winner_id is ?", nil).order('updated_at DESC') }
 
   belongs_to :player
   has_many :moves
@@ -13,8 +13,9 @@ class Game < ActiveRecord::Base
     # NOTE: design consideration. multiple sessions/player?
     session_id = SecureRandom.hex(32)
     ##{player1.name} vs. #{player2.name}
-		Game.find_or_create_by(:title => "Waiting for opponent...") do |game|
+		Game.find_or_create_by(:p1 => player1.id, :winner_id => nil) do |game|
       game.session_id = session_id
+      game.title = "Waiting for opponent..."
   		game.p1 = player1.id
   		# game.p2 = player2.id
     end

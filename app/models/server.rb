@@ -1,3 +1,5 @@
+require 'net/http'
+
 class Server  #< ActiveRecord::Base
   # include ActiveModel::Model
   # extend ActiveModel::Callbacks

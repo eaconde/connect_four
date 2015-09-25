@@ -3,7 +3,11 @@ class PlayController < ApplicationController
 
   def index
     @games = Game.all
-    gon.games = @games
+
+    gon.push({
+      games: @games,
+      root_url: root_url
+    })
     @games
   end
 

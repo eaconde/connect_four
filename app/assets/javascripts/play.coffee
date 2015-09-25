@@ -22,6 +22,7 @@ ready = () ->
   playing_vs_name = ''
 
   games = gon.games
+  root_url = gon.root_url
   if gon.game
     gameData = gon.game
     gameID = gon.game.id
@@ -65,8 +66,9 @@ ready = () ->
 
 
   faye.subscribe("/play/new", (data) ->
-    console.log "FIRING NEW!!! CURRENT GAME == #{gon.game} || #{window.location.href}"
-    if gon.game == undefined && window.location.href == "http://localhost:3000/"
+    console.log "FIRING NEW!!! CURRENT GAME == #{gon.game} || #{window.location.href} || #{root_url}"
+    #"http://localhost:3000/"
+    if gon.game == undefined && window.location.href == root_url
       # console.log "#{window.location.href == "http://localhost:3000/"}"
       # if window.location.href == "http://localhost:3000/"
       console.log "reloading page!"

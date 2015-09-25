@@ -135,7 +135,7 @@ ready = () ->
       else
         matchCtr = 0
 
-    return true
+    return false
 
   diagonalWin = (pos) ->
     diagonalLtoRWin(pos) || diagonalRtoLWin(pos)
@@ -154,7 +154,7 @@ ready = () ->
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    horizontalWin(pos) # || verticalWin(pos) || diagonalWin(pos)
+    horizontalWin(pos) || verticalWin(pos) #|| diagonalWin(pos)
 
   # -----------------------
   # checkTie
@@ -168,13 +168,14 @@ ready = () ->
     console.log "update scores"
 
   showWinnerModal = (winner_id) ->
-    player = if winner_id == playing_as_id then playing_as_name else playing_vs_name
+    player_name = if winner_id == playing_as_id then playing_as_name else playing_vs_name
+    player = if winner_id == playing_as_id then playing_as else playing_vs
     color = players[player + "-color"]
     console.log "Winner is #{player} with color #{color}!"
 
     $('.modal-header > i').css
       "color": color
-    $('.modal-body > p').text("#{player} Wins!")
+    $('.modal-body > p').text("#{player_name} Wins!")
     $('.modal-body > p').css
       "color": color
     $('#modal-gameover').modal(

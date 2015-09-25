@@ -14,7 +14,7 @@ class PlayController < ApplicationController
     message = {
       game: @game
     }
-    broadcast "/play/new", message
+    Server.delay.broadcast "/play/new", message
     gon.push({
       player1: @player1,
       game: @game
@@ -38,7 +38,7 @@ class PlayController < ApplicationController
         game: @game
       }
 
-      broadcast "/play/#{@game.id}/join", message
+      Server.broadcast "/play/#{@game.id}/join", message
       render 'play/pvp'
     else
       render json: @game.errors, status: :unprocessable_entity
@@ -47,7 +47,7 @@ class PlayController < ApplicationController
 
   def complete
     if @game.complete(play_params[:winner_id])
-      broadcast "/play/#{@game.id}/completed", @game
+      Server.broadcast "/play/#{@game.id}/completed", @game
       render json: @game, status: :ok, location: @recurring_promo
     else
       render json: @game.errors, status: :unprocessable_entity

@@ -4,12 +4,6 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_filter :configure_permitted_parameters, if: :devise_controller?
 
-  def broadcast(channel, data)
-    message = {:channel => channel, :data => data, :ext => {:auth_token => 'anything'}}
-    uri = URI.parse("http://faye-cedar.herokuapp.com/faye")
-    Net::HTTP.post_form(uri, :message => message.to_json)
-  end
-
   protected
 
   def configure_permitted_parameters

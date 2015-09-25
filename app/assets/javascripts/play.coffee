@@ -70,7 +70,7 @@ ready = () ->
       # console.log "#{window.location.href == "http://localhost:3000/"}"
       # if window.location.href == "http://localhost:3000/"
       console.log "reloading page!"
-      # location.reload(true)
+      location.reload(true)
   )
 
   faye.subscribe("/play/#{gameID}/completed", (data) ->

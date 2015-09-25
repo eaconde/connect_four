@@ -208,9 +208,17 @@ ready = () ->
   # -----------------------
   setMoveToUI = (x_axis, y_axis, pmove) ->
     moveID = "#x#{x_axis}y#{y_axis}"
+    color = players[pmove + '-color']
     console.log "setting color for #{pmove}"
     $(moveID).css
-      background: players[pmove + '-color']
+      background: color
+    $(moveID).addClass("tagged")
+    innerCircle = $( ".inner-circle" ).clone().removeClass('hidden')
+    innerCircle.css
+      background: color
+    innerCircle.appendTo(moveID)
+
+
 
   # -----------------------
   # updateMoveState
@@ -341,9 +349,11 @@ ready = () ->
       playing_vs_id = p1ID
       playing_as_name = player2.name
       playing_vs_name = player1.name
-
+      color = players[playing_as + '-color']
       $('#chip').css
-        background: players[playing_as + '-color'];
+        background: color;
+      $('#chip > .inner-circle').css
+        background: color;
       # P1 Turn
       disableUI()
 

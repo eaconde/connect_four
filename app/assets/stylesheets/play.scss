@@ -11,7 +11,7 @@
 
 #boardContent {
   margin: 0px; padding: 0px;
-  background: $green;
+  background: linear-gradient(to bottom , #8e9189, #5c6659); //$green;
 
   #playersBoard {
     width: 30%; margin: 0px; padding: 0px;
@@ -20,7 +20,7 @@
 
   #gameBoard {
     width: 380px;
-    background-color: $blue;
+    background: linear-gradient(to bottom, #8e9189, $blue);
     text-align: center;
     margin: 0 auto;
     padding: 0px;
@@ -52,11 +52,25 @@
         margin: 3px;
         text-align: center;
         vertical-align: top;
+        position: relative;
+        box-shadow: 1px 1px #000;
       }
 
       .tagged {
-
+        box-shadow: inset 2px 2px 3px #000;
       }
+    }
+
+    .inner-circle {
+      position: absolute;
+      background: #d9534f;
+      border-radius: 50%;
+      height: 40px;
+      width: 40px;
+      top: 155px;
+      left: 155px;
+      margin: -150px 0px 0px -150px;
+      border: 1px solid #676667;
     }
   }
 

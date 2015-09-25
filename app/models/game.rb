@@ -1,4 +1,7 @@
 class Game < ActiveRecord::Base
+  # hide old completed games
+  default_scope { where("p2 = ? and p1 = ?", nil, nil).order('updated_at DESC') }
+
   belongs_to :player
   has_many :moves
    accepts_nested_attributes_for :moves

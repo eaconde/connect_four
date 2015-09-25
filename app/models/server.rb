@@ -1,4 +1,4 @@
-class Server  < ActiveRecord::Base
+class Server  #< ActiveRecord::Base
   # include ActiveModel::Model
   # extend ActiveModel::Callbacks
 

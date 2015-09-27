@@ -10,7 +10,8 @@ ready = () ->
     x2: 150,
     x3: 200,
     x4: 250,
-    x5: 300
+    x5: 300,
+    x6: 350
 
 
   moves = []
@@ -246,7 +247,7 @@ ready = () ->
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    horizontalWin(pos) || verticalWin(pos) || diagonalWin(pos)
+    horizontalWin(pos) || verticalWin(pos) #|| diagonalWin(pos)
 
   # -----------------------
   # checkTie
@@ -388,7 +389,7 @@ ready = () ->
 
   $('#gameBoard').on('mousemove', (e) ->
     position = getXPosition($('#gameBoard'), e.pageX)
-
+    console.log "Currently @ x: #{position}"
     $('#chip').css
       left: position
   );
@@ -401,9 +402,9 @@ ready = () ->
     x_pos = -1
 
     for i in [0..limit]
-      pad = 13*i
+      pad = 7 * i
       c = 'x' + i
-      n = 'x' + (i+1)
+      n = 'x' + (i + 1)
       x_curr = x_axis_limits[c]+pad
       x_next = x_axis_limits[n]+pad || x_axis
 

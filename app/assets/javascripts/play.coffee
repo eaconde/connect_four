@@ -204,7 +204,7 @@ ready = () ->
     startY = startXY.y_pos
     player_id = pos.player_id
 
-    while startX <= 5 || startY <= 6
+    while startX <= 6 || startY <= 5
       match = moves.filter (move) ->
         return move.x_pos == startX && move.y_pos == startY && move.player_id == player_id
 
@@ -247,7 +247,7 @@ ready = () ->
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    horizontalWin(pos) || verticalWin(pos) #|| diagonalWin(pos)
+    horizontalWin(pos) || verticalWin(pos) || diagonalWin(pos)
 
   # -----------------------
   # checkTie

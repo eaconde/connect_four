@@ -30,6 +30,8 @@ class PlayController < ApplicationController
     if @game.join play_params[:p2]
       @player1 = Player.find(@game.p1)
       @player2 = Player.find(play_params[:p2])
+
+      puts "API JOIN: #{@player2.to_json}"
       gon.push({
         player1: @player1,
         player2: @player2,

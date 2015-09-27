@@ -31,7 +31,6 @@ ready = () ->
     player1 = gon.player1
     player2 = gon.player2 if gon.player2
 
-
   players =
     'p1': p1ID
     'p1-color': '#d9534f'
@@ -58,6 +57,8 @@ ready = () ->
     gon.player2 = player2
     gon.gameData = gameData
 
+    console.log "AFTER PLAYER 2 JOINDED == #{gon.player2}"
+
     enableUI()
 
     $('#player2 p:first').text("Name: #{player2.name}")
@@ -66,13 +67,7 @@ ready = () ->
 
 
   faye.subscribe("/play/new", (data) ->
-    console.log "FIRING NEW!!! CURRENT GAME == #{gon.game} || #{window.location.href} || #{root_url}"
-    #"http://localhost:3000/"
-    if gon.game == undefined && window.location.href == root_url
-      # console.log "#{window.location.href == "http://localhost:3000/"}"
-      # if window.location.href == "http://localhost:3000/"
-      console.log "reloading page!"
-      location.reload(true)
+    location.reload(true) if gon.game == undefined && window.location.href == root_url
   )
 
   faye.subscribe("/play/#{gameID}/completed", (data) ->
@@ -156,25 +151,102 @@ ready = () ->
   # diagonalWin
   # -----------------------
   diagonalWin = (pos) ->
-    diagonalLtoRWin(pos) || diagonalRtoLWin(pos)
+    diagonalBLtoTRWin(pos) || diagonalBRtoTLWin(pos)
+
+
+  getStartingXY = (pos) ->
+    result =
+      x_pos: 0,
+      y_pos: 0
+
+    startX = pos.x_pos
+    startY = pos.y_pos
+
+    while startX >= 0 || startY >= 0
+      startX -= 1
+      startY -= 1
+
+    result.x_pos = startX
+    result.y_pos = startY
+    result
 
   # -----------------------
-  # diagonalLtoRWin
+  # diagonalBLtoTRWin
+  # bottom left to top right
   # -----------------------
-  diagonalLtoRWin = (pos) ->
-    false
+  diagonalBLtoTRWin = (pos) ->
+    exclude =
+      [
+        { x: 4, y: 0 },
+        { x: 5, y: 0 },
+        { x: 5, y: 1 },
+        { x: 6, y: 0 },
+        { x: 6, y: 1 },
+        { x: 6, y: 2 },
+        { x: 0, y: 4 },
+        { x: 1, y: 5 },
+        { x: 2, y: 6 },
+        { x: 0, y: 5 },
+        { x: 1, y: 6 },
+        { x: 0, y: 6 }
+      ]
+    match = exclude.filter (elem) ->
+      return elem.x == pos.x_pos && elem.y == pos.y_pos
+
+    if match.length == 1
+      console.log "returning from diagonalBLtoTRWin due to match = #{JSON.stringify(match)}"
+      return false
+
+    matchCtr = 0
+    startXY = getStartingXY(pos)
+    startX = startXY.x_pos
+    startY = startXY.y_pos
+    player_id = pos.player_id
+
+    while startX <= 5 || startY <= 6
+      match = moves.filter (move) ->
+        return move.x_pos == startX && move.y_pos == startY && move.player_id == player_id
+
+      if match.length == 1
+        matchCtr += 1
+        console.log "matchCtr = #{matchCtr}. MATCH @ #{startX}:#{startY}"
+      else
+        matchCtr = 0
+        console.log "REST matchCtr!!!"
+
+      return true if matchCtr == 4
+
+      startX += 1
+      startY += 1
+
+    return false
+
 
   # -----------------------
   # diagonalRtoLWin
   # -----------------------
-  diagonalRtoLWin = (pos) ->
+  # diagonalBRtoTLWin = (pos) ->
+  #   exclude =
+  #     [
+  #       { x: 0, y: 0 },
+  #       { x: 0, y: 1 },
+  #       { x: 0, y: 2 },
+  #       { x: 1, y: 0 },
+  #       { x: 1, y: 1 },
+  #       { x: 2, y: 0 }
+  #     ]
+  #   match = exclude.filter (elem) ->
+  #     return elem.x == pos.x_pos && elem.y == pos.y_pos
+  #   return false if match
+  #   console.log "diagonalBRtoTLWin exclusions #{JSON.stringify(exclude)}"
+    # # bottom right to top left
     false
 
   # -----------------------
   # checkWinner
   # -----------------------
   checkWinner = (pos) ->
-    horizontalWin(pos) || verticalWin(pos) #|| diagonalWin(pos)
+    horizontalWin(pos) || verticalWin(pos) || diagonalWin(pos)
 
   # -----------------------
   # checkTie

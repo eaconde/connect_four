@@ -15,18 +15,18 @@
 
   #playersBoard {
     width: 30%; margin: 0px; padding: 0px;
-    margin-right: 15px;
+    margin-right: 0px;
   }
 
   #gameBoard {
-    width: 380px;
+    width: 420px;
     background: linear-gradient(to bottom, #8e9189, $blue);
     text-align: center;
-    margin: 0 auto;
+    margin: 10px auto;
     padding: 0px;
 
     #moveBox {
-      height: 60px;
+      height: 50px;
       margin: 0px auto;
 
       #chip {

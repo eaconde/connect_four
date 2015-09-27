@@ -154,18 +154,24 @@ ready = () ->
   diagonalWin = (pos) ->
     diagonalBLtoTRWin(pos) || diagonalBRtoTLWin(pos)
 
-
-  getStartingXY = (pos) ->
+  # -----------------------
+  # getStartingXY
+  # -----------------------
+  getStartingXY = (pos, direction) ->
     result =
       x_pos: 0,
       y_pos: 0
 
     startX = pos.x_pos
     startY = pos.y_pos
-
-    while startX >= 0 || startY >= 0
-      startX -= 1
-      startY -= 1
+    if direction == 'ltr'
+      while startX >= 0 || startY >= 0
+        startX -= 1
+        startY -= 1
+    else
+      while startX <= 6 || startY >= 0
+        startX += 1
+        startY -= 1
 
     result.x_pos = startX
     result.y_pos = startY
@@ -195,16 +201,69 @@ ready = () ->
       return elem.x == pos.x_pos && elem.y == pos.y_pos
 
     if match.length == 1
-      console.log "returning from diagonalBLtoTRWin due to match = #{JSON.stringify(match)}"
+      # console.log "returning from diagonalBLtoTRWin due to match = #{JSON.stringify(match)}"
       return false
 
     matchCtr = 0
-    startXY = getStartingXY(pos)
+    startXY = getStartingXY(pos, 'ltr')
     startX = startXY.x_pos
     startY = startXY.y_pos
     player_id = pos.player_id
 
     while startX <= 6 || startY <= 5
+      match = moves.filter (move) ->
+        return move.x_pos == startX && move.y_pos == startY && move.player_id == player_id
+
+      if match.length == 1
+        matchCtr += 1
+        # console.log "matchCtr = #{matchCtr}. MATCH @ #{startX}:#{startY}"
+      else
+        matchCtr = 0
+        # console.log "REST matchCtr!!!"
+
+      return true if matchCtr == 4
+
+      startX += 1
+      startY += 1
+
+    return false
+
+
+  # -----------------------
+  # diagonalBRtoTLWin
+  # bottom right to top left
+  # -----------------------
+  diagonalBRtoTLWin = (pos) ->
+    exclude =
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: 2 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 0 },
+        { x: 4, y: 5 },
+        { x: 5, y: 4 },
+        { x: 5, y: 5 },
+        { x: 6, y: 3 },
+        { x: 6, y: 4 },
+        { x: 6, y: 5 }
+      ]
+    match = exclude.filter (elem) ->
+      return elem.x == pos.x_pos && elem.y == pos.y_pos
+    if match.length == 1
+      console.log "returning from diagonalBLtoTRWin due to match = #{JSON.stringify(match)}"
+      return false
+
+    matchCtr = 0
+    startXY = getStartingXY(pos, 'rtl')
+    startX = startXY.x_pos
+    startY = startXY.y_pos
+    player_id = pos.player_id
+
+    console.log "diagonalBRtoTLWin start @ #{JSON.stringify(startXY)}"
+
+    while startX >= 0 || startY <= 5
       match = moves.filter (move) ->
         return move.x_pos == startX && move.y_pos == startY && move.player_id == player_id
 
@@ -217,31 +276,10 @@ ready = () ->
 
       return true if matchCtr == 4
 
-      startX += 1
+      startX -= 1
       startY += 1
 
     return false
-
-
-  # -----------------------
-  # diagonalRtoLWin
-  # -----------------------
-  # diagonalBRtoTLWin = (pos) ->
-  #   exclude =
-  #     [
-  #       { x: 0, y: 0 },
-  #       { x: 0, y: 1 },
-  #       { x: 0, y: 2 },
-  #       { x: 1, y: 0 },
-  #       { x: 1, y: 1 },
-  #       { x: 2, y: 0 }
-  #     ]
-  #   match = exclude.filter (elem) ->
-  #     return elem.x == pos.x_pos && elem.y == pos.y_pos
-  #   return false if match
-  #   console.log "diagonalBRtoTLWin exclusions #{JSON.stringify(exclude)}"
-    # # bottom right to top left
-    false
 
   # -----------------------
   # checkWinner
@@ -389,7 +427,7 @@ ready = () ->
 
   $('#gameBoard').on('mousemove', (e) ->
     position = getXPosition($('#gameBoard'), e.pageX)
-    console.log "Currently @ x: #{position}"
+    # console.log "Currently @ x: #{position}"
     $('#chip').css
       left: position
   );

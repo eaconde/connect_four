@@ -1,5 +1,5 @@
 class PlayController < ApplicationController
-  before_action :set_game, only: [:join, :complete]
+  before_action :set_game, only: [:join, :complete, :destroy]
 
   def index
     @games = Game.all
@@ -60,11 +60,21 @@ class PlayController < ApplicationController
     end
   end
 
+  def destroy
+    puts "destroy game == #{@game.to_json}"
+    @game.destroy
+    message = {
+      id: @game.id,
+      message: "Game is no longer available"
+    }
+    Server.broadcast "/play/#{@game.id}/destroyed", message
+    head :no_content
+  end
+
   private
 
   def set_game
     @game = Game.find(params[:id])
-
   end
 
   def play_params

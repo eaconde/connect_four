@@ -12,17 +12,19 @@ ready = () ->
     # ==========================================
     # CONSTRUCTOR
     # ==========================================
-    constructor: (gameData, player1, player2, moves) ->
+    constructor: (gameData, player1, player2, moves, root_url) ->
       # variable assignment
       @gameData = gameData
       @player1 = player1
       @player2 = player2
       @moves = moves
+      @root_url = root_url
 
       console.log "constructor: gameData == #{@gameData}"
       console.log "constructor: player1 == #{@player1}"
       console.log "constructor: player2 == #{@player2}"
       console.log "constructor: moves == #{@moves}"
+      console.log "constructor: root_url == #{@root_url}"
 
       # set defaults
       @x_axis_limits =
@@ -51,6 +53,34 @@ ready = () ->
       # restore state from given data
       @restoreGameState()
 
+    setVarsToPristine: ->
+      playing_as = ''
+      playing_as_id = null
+      playing_as_name = ''
+      playing_vs = ''
+      playing_vs_id = null
+      playing_vs_name = ''
+      @gameData = {}
+      @player1 = {}
+      @player2 = {}
+      @moves = []
+      @players.p1 = 0
+      @players.p2 = 0
+      @gameID = 0
+      @p1ID = 0
+      @p2ID = 0
+
+      #reset
+      localStorage.removeItem('gameData')
+      localStorage.removeItem('player1')
+      localStorage.removeItem('player2')
+      localStorage.removeItem('moves')
+      localStorage.removeItem('playing_as')
+      localStorage.removeItem('playing_as_id')
+      localStorage.removeItem('playing_as_name')
+      localStorage.removeItem('playing_vs')
+      localStorage.removeItem('playing_vs_id')
+      localStorage.removeItem('playing_vs_name')
 
     # **********************************************************
     # FAYE SUBSCRIPTIONS
@@ -83,7 +113,7 @@ ready = () ->
         )
 
         faye.subscribe("/play/new", (data) =>
-          location.reload(true) if gon.game == undefined && window.location.href == root_url
+          location.reload(true) if gon.game == undefined && window.location.href == @root_url
         )
 
         console.log "subscription: /play/#{@gameID}/completed"
@@ -92,12 +122,19 @@ ready = () ->
           @setEndUI(data.winner_id)
         )
 
-        console.log "subscription: /game/#{@gameID}/turn"
-        faye.subscribe("/game/#{@gameID}/turn", (moveData) =>
+        console.log "subscription: /play/#{@gameID}/turn"
+        faye.subscribe("/play/#{@gameID}/turn", (moveData) =>
           if parseInt(moveData.player_id) != playing_as_id
             @processOpponentTurn(moveData)
             @moves.push moveData
             localStorage.setItem('moves', JSON.stringify(@moves))
+        )
+
+        console.log "subscription: /play/#{@gameID}/destroyed"
+        faye.subscribe("/play/#{@gameID}/destroyed", (data) =>
+          @setVarsToPristine()
+
+          window.location.replace(@root_url);
         )
 
 
@@ -525,7 +562,7 @@ ready = () ->
         # console.log "Currently @ x: #{position}"
         $('#chip').css
           left: position
-      );
+      )
 
       $('#gameBoard').on('click', (e) =>
         x_axis = @getXPosition($('#gameBoard'), e.pageX)
@@ -546,14 +583,39 @@ ready = () ->
             break
 
         @makeMove(x_pos)
+      )
 
-      );
+      $('#resetGame').on('click', (e) =>
+        #clear vars and init new game state
+      )
+
+      # players > leave
+      $('#leaveGame').on('click', (e) =>
+        # notify opponent on leave
+        $.ajax
+          method: 'DELETE'
+          url: "#{@gameID}"
+          dataType: 'JSON'
+          success: (data) =>
+            # reset vars and localStorage
+            @setVarsToPristine()
+      )
+
+
 
 
   # ====================
   # initialize game data either from API or localStorage
   # ====================
   checkStorage = () ->
+    # set root_url
+    # localStorage.setItem('root_url', '')
+    root_url = localStorage.getItem('root_url')
+    if root_url.length == 0
+      root_url = gon.root_url
+      console.log "SETTING ROOT: #{root_url} || #{localStorage.getItem('root_url')}"
+      localStorage.setItem('root_url', root_url)
+
     # set gameData
     localStorage.setItem('gameData', [])
     gameData = localStorage.getItem('gameData')
@@ -598,10 +660,11 @@ ready = () ->
       player1: player1
       player2: player2
       moves: moves
+      root_url: root_url
 
 
   vars = checkStorage()
-  game = new ConnectFour(vars.gameData, vars.player1, vars.player2, vars.moves)
+  game = new ConnectFour(vars.gameData, vars.player1, vars.player2, vars.moves, vars.root_url)
   game.manageSubscriptions()
   game.manageEvents()
 

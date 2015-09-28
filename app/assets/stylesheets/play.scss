@@ -84,6 +84,11 @@
     padding: 10px;
     border-radius: 5px;
   }
+
+  #leaveGame {
+    margin: 0 auto;
+    width: 100%;
+  }
 }
 
 
@@ -107,15 +112,6 @@
   }
 
   .modal-footer {
-
-    #leaveGame {
-      float: left;
-      width: 45%;
-    }
-
-    #newGame {
-      float: right;
-      width: 45%;
-    }
+    text-align: center;
   }
 }

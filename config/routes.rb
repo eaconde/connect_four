@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   root to: 'play#index'
+  # TODO: convert routes to resource
   # games listing
   get 'play' => 'play#index'
   # new game
@@ -8,6 +9,8 @@ Rails.application.routes.draw do
   post 'play/join'
   # finish game
   put "play/:id/complete" => 'play#complete'
+  # leave game
+  delete "play/:id" => 'play#destroy'
   # moves tracking
   scope "play/:id", defaults: {format: :json} do
     resource :moves, only: [:index, :create]

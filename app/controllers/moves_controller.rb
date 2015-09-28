@@ -7,7 +7,7 @@ class MovesController < ApplicationController
   def create
     @move = Move.new(move_params)
     if @move.save
-      Server.broadcast "/game/#{move_params[:game_id]}/turn", move_params
+      Server.broadcast "/play/#{move_params[:game_id]}/turn", move_params
       render json: @move
     else
       render json: @move.errors, status: :unprocessable_entity

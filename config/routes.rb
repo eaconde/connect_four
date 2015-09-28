@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   post 'play/join'
   # finish game
   put "play/:id/complete" => 'play#complete'
+  # finish game
+  post "play/reset" => 'play#reset'
   # leave game
   delete "play/:id" => 'play#destroy'
   # moves tracking

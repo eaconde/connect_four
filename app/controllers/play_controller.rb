@@ -60,10 +60,13 @@ class PlayController < ApplicationController
     end
   end
 
-  def create
-    @game = Game.reset play_params
 
+  def reset
+    @game = Game.reset play_params
+    Server.broadcast "/play/reset/#{play_params[:p1]}/#{play_params[:p2]}", @game
+    render json: @game
   end
+
 
   def destroy
     puts "destroy game == #{@game.to_json}"

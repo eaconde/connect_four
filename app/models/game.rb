@@ -14,17 +14,10 @@ class Game < ActiveRecord::Base
 
     ##{player1.name} vs. #{player2.name}
 		Game.find_or_create_by(:p1 => player1.id, :winner_id => nil) do |game|
-      game.session_id = generate_session
+      game.session_id = SecureRandom.hex(32)
       game.title = "Waiting for opponent..."
     end
 	end
-
-  def self.reset(params)
-    game = Game.find_or_create_by(:p1 => params.p1, :p2 => params.p2) do |game|
-      game.session_id = generate_session
-      game.title = "Waiting for opponent..."
-    end
-  end
 
   def join(pID)
     player1 = Player.find(self.p1)
@@ -34,14 +27,18 @@ class Game < ActiveRecord::Base
     self.save
   end
 
+  def self.reset params
+    player1 = Player.find(params[:p1])
+    player2 = Player.find(params[:p2])
+    Game.find_or_create_by(:p1 => player1.id, :p2 => player2.id) do |game|
+      game.session_id = SecureRandom.hex(32)
+      game.title = "#{player1.name} vs #{player2.name}"
+    end
+  end
+
   def complete winner_id
     self.winner_id = winner_id
     self.save
   end
 
-  private
-
-  def generate_session
-    SecureRandom.hex(32)
-  end
 end

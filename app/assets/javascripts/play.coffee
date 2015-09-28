@@ -2,12 +2,16 @@
 
 ready = () ->
 
-  String.prototype.getOrCreateStore = (defaultValue) ->
-    value = localStorage.getItem(@)
-    if value == null
+  String.prototype.getOrCreateStore = (defaultValue, force) ->
+    console.log "getOrCreateStore: #{force}"
+    force = if force == undefined then false else true
+    value = localStorage.getItem(@) if false
+    if value == null || value == undefined || value == 'undefined'
+      # console.log "getOrCreateStore key:#{@}: returning passed data with #{defaultValue}"
       localStorage.setItem(@, defaultValue)
       return defaultValue # return default
     # return from storage
+    # console.log "getOrCreateStore key:#{@}: returning defaults with #{value}"
     return value
 
 
@@ -53,13 +57,14 @@ ready = () ->
 
       @gameID = gameData.id if gameData
       if player1
+        console.log "assigning player1 id"
         @p1ID = player1.id
         @players.p1 = player1.id
       if player2
         @p2ID = player2.id
         @players.p2 = player2.id
 
-
+      # console.log "@player1 == #{@player}"
       # restore state from given data
       @restoreGameState()
 
@@ -67,28 +72,27 @@ ready = () ->
     # **********************************************************
     # FAYE SUBSCRIPTIONS
     # **********************************************************
+    # Faye Client
+    faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye')
+
     manageSubscriptions: ->
-      # Faye Client
-      faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
       console.log "manageSubscriptions: @players == #{JSON.stringify(@players)}"
       if @gameID != undefined
 
         console.log "subscription: /play/#{@gameID}/join"
         faye.subscribe("/play/#{@gameID}/join", (data) =>
-          @player2 = 'player2'.getOrCreateStore(JSON.stringify(data.player2))
+          @player2 = 'player2'.getOrCreateStore(data.player2)
           @p2ID = @player2.id
           @players.p2 = @player2.id
           playing_vs = 'playing_vs'.getOrCreateStore('p2')
           playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player2.id)
           playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player2.name)
 
-          console.log "AFTER PLAYER 2 JOINED == #{@player2}"
-
           $('#player2 p:first').text("Name: #{@player2.name}")
           $('#header h3:first').text(@gameData.title)
 
           @enableUI()
-          @setGameReset()
+
         )
 
         faye.subscribe("/play/new", (data) =>
@@ -117,13 +121,18 @@ ready = () ->
           window.location.replace(@root_url);
         )
 
+
     setGameReset: ->
-      if @p1ID & @p2ID
-        console.log "subscription: /play/reset?p1=#{@p1ID}&p2=#{@p2ID}"
-        # faye.subscribe("/play/#{@gameID}/completed", (data) =>
-        #   console.log "display winner!"
-        #   @setEndUI(data.winner_id)
-        # )
+      # NOTE: Only player 2 will be listening to the game reset
+      #       as player 1 is responsible for trigerring the actual reset
+      if (@p1ID != null && @p1ID != undefined) && (@p2ID != null && @p2ID != undefined)
+        # console.log "setGameReset: /play/reset?p1=#{@p1ID}&p2=#{@p2ID}"
+        console.log "setGameReset: /play/reset/#{@p1ID}/#{@p2ID}"
+        faye.subscribe("/play/reset/#{@p1ID}/#{@p2ID}", (data) =>
+          console.log "setGameReset: #{data}"
+          $('#modal-gameover').modal('hide')
+          @resetGame(data)
+        )
 
 
     # **********************************************************
@@ -167,6 +176,7 @@ ready = () ->
     # restoreGameState
     # -----------------------
     restoreGameState: ->
+      @enableUI()
       if !@isEmpty(@gameData) && @p2ID == undefined
         # new game..."
         playing_as = 'playing_as'.getOrCreateStore('p1')
@@ -190,12 +200,18 @@ ready = () ->
         $('#chip > .inner-circle').css
           background: color
 
+        $('.modal-body > p:last').removeClass('hidden')
+        $('#resetGame').prop
+          'disabled': true
+
         @disableUI()
 
 
       if window.location.href == @root_url
         console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
         @setVarsToPristine()
+
+      @setGameReset()
 
     # -----------------------
     # setVarsToPristine
@@ -449,8 +465,8 @@ ready = () ->
 
       $('.modal-header > i').css
         "color": color
-      $('.modal-body > p').text("#{player_name} Wins!")
-      $('.modal-body > p').css
+      $('.modal-body > p:first').text("#{player_name} Wins!")
+      $('.modal-body > p:first').css
         "color": color
       $('#modal-gameover').modal(
         backdrop: 'static',
@@ -496,6 +512,18 @@ ready = () ->
       innerCircle.css
         background: color
       innerCircle.appendTo(moveID)
+
+    # -----------------------
+    # resetUIMove
+    # -----------------------
+    resetUIMove: (x_axis, y_axis) ->
+      moveID = "#x#{x_axis}y#{y_axis}"
+
+      $(moveID).css
+        background: 'white'
+      $(moveID).removeClass("tagged")
+      $(moveID).empty()
+
 
     # -----------------------
     # updateMoveState
@@ -556,12 +584,24 @@ ready = () ->
       positionX = if positionX < 0 then 0 else positionX
       positionX = if positionX > width then width else positionX
 
+    # -----------------------
+    # resetGameUI
+    # -----------------------
+    resetGame: (game) ->
+      @gameData = 'gameData'.getOrCreateStore(game, true)
+
+      #reset UI
+      @moves.map (move) =>
+        @resetUIMove move.x_pos, move.y_pos
+
+      @moves = 'moves'.getOrCreateStore([], true)
+
+
+
     # **********************************************************
     # EVENTS
     # **********************************************************
     manageEvents: ->
-
-      # chip mousemove
       $('#gameBoard').on('mousemove', (e) =>
         position = @getXPosition($('#gameBoard'), e.pageX)
         # console.log "Currently @ x: #{position}"
@@ -569,7 +609,6 @@ ready = () ->
           left: position
       )
 
-      # chip click
       $('#gameBoard').on('click', (e) =>
         x_axis = @getXPosition($('#gameBoard'), e.pageX)
 
@@ -591,21 +630,24 @@ ready = () ->
         @makeMove(x_pos)
       )
 
-      # reset game
       $('#resetGame').on('click', (e) =>
         #clear vars and init new game state
-        $.ajax
-          method: 'GET'
-          url: "/pvp"
-          # dataType: 'JSON'
-          success: (data) =>
+        data =
+          p1: @p1ID
+          p2: @p2ID
 
-            console.log "NEW GAME DATA! #{JSON.stringify(data)}"
-            # reset vars and localStorage
-            # @setVarsToPristine()
+        $.ajax
+          method: 'POST'
+          url: "reset"
+          dataType: 'JSON'
+          data:
+            play: data
+          success: (data) =>
+            console.log "RESETTING GAME WITH #{data}"
+            @resetGame(data)
       )
 
-      # leave game
+      # players > leave
       $('#leaveGame').on('click', (e) =>
         # notify opponent on leave
         $.ajax
@@ -635,7 +677,6 @@ ready = () ->
     console.log "checkStorage: player2 == #{player2}"
     console.log "checkStorage: moves == #{moves}"
     console.log "checkStorage: root_url == #{root_url}"
-
 
     vars =
       gameData: gameData

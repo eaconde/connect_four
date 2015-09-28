@@ -60,6 +60,11 @@ class PlayController < ApplicationController
     end
   end
 
+  def create
+    @game = Game.reset play_params
+
+  end
+
   def destroy
     puts "destroy game == #{@game.to_json}"
     game_id = @game.id

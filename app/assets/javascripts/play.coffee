@@ -88,6 +88,7 @@ ready = () ->
           $('#header h3:first').text(@gameData.title)
 
           @enableUI()
+          @setGameReset()
         )
 
         faye.subscribe("/play/new", (data) =>
@@ -115,6 +116,14 @@ ready = () ->
 
           window.location.replace(@root_url);
         )
+
+    setGameReset: ->
+      if @p1ID & @p2ID
+        console.log "subscription: /play/reset?p1=#{@p1ID}&p2=#{@p2ID}"
+        # faye.subscribe("/play/#{@gameID}/completed", (data) =>
+        #   console.log "display winner!"
+        #   @setEndUI(data.winner_id)
+        # )
 
 
     # **********************************************************
@@ -551,6 +560,8 @@ ready = () ->
     # EVENTS
     # **********************************************************
     manageEvents: ->
+
+      # chip mousemove
       $('#gameBoard').on('mousemove', (e) =>
         position = @getXPosition($('#gameBoard'), e.pageX)
         # console.log "Currently @ x: #{position}"
@@ -558,6 +569,7 @@ ready = () ->
           left: position
       )
 
+      # chip click
       $('#gameBoard').on('click', (e) =>
         x_axis = @getXPosition($('#gameBoard'), e.pageX)
 
@@ -579,12 +591,21 @@ ready = () ->
         @makeMove(x_pos)
       )
 
+      # reset game
       $('#resetGame').on('click', (e) =>
         #clear vars and init new game state
+        $.ajax
+          method: 'GET'
+          url: "/pvp"
+          # dataType: 'JSON'
+          success: (data) =>
 
+            console.log "NEW GAME DATA! #{JSON.stringify(data)}"
+            # reset vars and localStorage
+            # @setVarsToPristine()
       )
 
-      # players > leave
+      # leave game
       $('#leaveGame').on('click', (e) =>
         # notify opponent on leave
         $.ajax

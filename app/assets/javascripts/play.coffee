@@ -55,6 +55,9 @@ ready = () ->
         p2: 0,
         'p2-color': '#cfeb22'
 
+      @p1Score = 0
+      @p2Score = 0
+
       @gameID = gameData.id if gameData
       if player1
         console.log "assigning player1 id"
@@ -75,6 +78,9 @@ ready = () ->
     # Faye Client
     faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye')
 
+    # -----------------------
+    # manageSubscriptions
+    # -----------------------
     manageSubscriptions: ->
       console.log "manageSubscriptions: @players == #{JSON.stringify(@players)}"
       if @gameID != undefined
@@ -102,7 +108,8 @@ ready = () ->
         console.log "subscription: /play/#{@gameID}/completed"
         faye.subscribe("/play/#{@gameID}/completed", (data) =>
           console.log "display winner!"
-          @setEndUI(data.winner_id)
+          @updateScores(data.winner_id) if data.winner_id != playing_as_id
+          @showWinnerModal(data.winner_id)
         )
 
         console.log "subscription: /play/#{@gameID}/turn"
@@ -121,7 +128,9 @@ ready = () ->
           window.location.replace(@root_url);
         )
 
-
+    # -----------------------
+    # setGameReset
+    # -----------------------
     setGameReset: ->
       # NOTE: Only player 2 will be listening to the game reset
       #       as player 1 is responsible for trigerring the actual reset
@@ -454,6 +463,12 @@ ready = () ->
       # TODO: scores update
       console.log "update scores"
 
+      @p1Score += 1 if winner_id == @player1.id
+      @p2Score += 1 if winner_id == @player2.id
+
+      $('#p1Score').text(@p1Score)
+      $('#p2Score').text(@p2Score)
+
     # -----------------------
     # showWinnerModal
     # -----------------------
@@ -474,13 +489,6 @@ ready = () ->
       )
 
     # -----------------------
-    # setEndUI
-    # -----------------------
-    setEndUI: (winner_id) ->
-      @updateScores(winner_id)
-      @showWinnerModal(winner_id)
-
-    # -----------------------
     # verifyGameState
     # -----------------------
     verifyGameState: (pos) ->
@@ -496,7 +504,8 @@ ready = () ->
             play: data
           success: (data) =>
             console.log "GAME OVER"
-            @setEndUI(data.winner_id)
+            @updateScores(data.winner_id)
+            @showWinnerModal(data.winner_id)
 
     # -----------------------
     # setMoveToUI
@@ -523,13 +532,6 @@ ready = () ->
         background: 'white'
       $(moveID).removeClass("tagged")
       $(moveID).empty()
-
-
-    # -----------------------
-    # updateMoveState
-    # -----------------------
-    updateMoveState: ->
-      @disableUI()
 
     # -----------------------
     # makeMove
@@ -567,10 +569,11 @@ ready = () ->
           move: moveData
         success: (data) =>
           @moves.push data
-          localStorage.setItem('moves', JSON.stringify(@moves))
+          @moves = 'moves'.getOrCreateStore(@moves, true)
+          # localStorage.setItem('moves', JSON.stringify(@moves))
           @setMoveToUI x_axis, y_axis, playing_as
           # switch player
-          @updateMoveState()
+          @disableUI()
           @verifyGameState(data)
 
     # -----------------------

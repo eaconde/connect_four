@@ -112,6 +112,15 @@
   }
 
   .modal-footer {
-    text-align: center;
+    // text-align: center;
+    #leaveGame {
+      float: left;
+      width: 45%;
+    }
+
+    #resetGame {
+      float: right;
+      width: 45%;
+    }
   }
 }

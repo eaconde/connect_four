@@ -132,6 +132,7 @@ ready = () ->
 
         console.log "subscription: /play/#{@gameID}/destroyed"
         faye.subscribe("/play/#{@gameID}/destroyed", (data) =>
+          console.log "subscription: /play/#{@gameID}/destroyed: should have been redirected to index"
           @setVarsToPristine()
 
           window.location.replace(@root_url);
@@ -232,6 +233,12 @@ ready = () ->
           background: color
 
         @disableUI()
+
+      console.log "restoreGameState: #{window.location.href == @root_url}"
+
+      if window.location.href == @root_url
+        @setVarsToPristine();
+
 
 
     # **********************************************************
@@ -362,7 +369,7 @@ ready = () ->
       # diagonalBRtoTLWin
       # bottom right to top left
       # -----------------------
-      diagonalBRtoTLWin = (pos) ->
+      diagonalBRtoTLWin = (pos) =>
         exclude =
           [
             { x: 0, y: 0 },
@@ -587,6 +594,7 @@ ready = () ->
 
       $('#resetGame').on('click', (e) =>
         #clear vars and init new game state
+
       )
 
       # players > leave

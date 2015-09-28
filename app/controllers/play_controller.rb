@@ -2,7 +2,7 @@ class PlayController < ApplicationController
   before_action :set_game, only: [:join, :complete, :destroy]
 
   def index
-    @games = Game.all
+    @games = Game.available
 
     gon.push({
       games: @games,
@@ -62,12 +62,13 @@ class PlayController < ApplicationController
 
   def destroy
     puts "destroy game == #{@game.to_json}"
+    game_id = @game.id
     @game.destroy
     message = {
-      id: @game.id,
+      id: game_id,
       message: "Game is no longer available"
     }
-    Server.broadcast "/play/#{@game.id}/destroyed", message
+    Server.broadcast "/play/#{game_id}/destroyed", message
     head :no_content
   end
 

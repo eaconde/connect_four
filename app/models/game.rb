@@ -1,6 +1,6 @@
 class Game < ActiveRecord::Base
   # hide old completed games
-  default_scope { where("winner_id is ?", nil).order('updated_at DESC') }
+  scope :available, -> { where("winner_id is ?", nil).order('created_at DESC') }
 
   belongs_to :player
   has_many :moves

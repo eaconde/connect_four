@@ -3,15 +3,15 @@
 ready = () ->
 
   String.prototype.getOrCreateStore = (defaultValue, force) ->
-    console.log "getOrCreateStore: #{force}"
     force = if force == undefined then false else true
-    value = localStorage.getItem(@) if false
+    value = localStorage.getItem(@) unless force
     if value == null || value == undefined || value == 'undefined'
-      # console.log "getOrCreateStore key:#{@}: returning passed data with #{defaultValue}"
+      console.log "getOrCreateStore key:#{@}: returning passed data with #{defaultValue}"
       localStorage.setItem(@, defaultValue)
       return defaultValue # return default
+      
     # return from storage
-    # console.log "getOrCreateStore key:#{@}: returning defaults with #{value}"
+    console.log "getOrCreateStore key:#{@}: returning defaults with #{value}"
     return value
 
 

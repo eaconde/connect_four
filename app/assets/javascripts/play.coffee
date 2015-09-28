@@ -1,6 +1,16 @@
 
 
 ready = () ->
+  String.prototype.getOrCreateStore = (defaultValue) ->
+
+    value = localStorage.getItem(@)
+    if value == null
+      localStorage.setItem(@, defaultValue)
+      return defaultValue # return default
+    # return from storage
+    return value
+
+
   class ConnectFour
     playing_as = ''
     playing_as_id = null
@@ -90,19 +100,15 @@ ready = () ->
       faye = new Faye.Client('http://faye-cedar.herokuapp.com/faye');
       console.log "manageSubscriptions: @players == #{JSON.stringify(@players)}"
       if @gameID != undefined
+
         console.log "subscription: /play/#{@gameID}/join"
         faye.subscribe("/play/#{@gameID}/join", (data) =>
-          @player2 = data.player2
-          localStorage.setItem('player2', JSON.stringify(@player2))
-          localStorage.setItem('playing_vs', 'p2')
-          localStorage.setItem('playing_vs_id', @player2.id)
-          localStorage.setItem('playing_vs_name', @player2.name)
-
+          @player2 = 'player2'.getOrCreateStore(JSON.stringify(data.player2))
           @p2ID = @player2.id
           @players.p2 = @player2.id
-          playing_vs = localStorage.getItem('playing_vs')
-          playing_vs_id = localStorage.getItem('playing_vs_id')
-          playing_vs_name = localStorage.getItem('playing_vs_name')
+          playing_vs = 'playing_vs'.getOrCreateStore('p2')
+          playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player2.id)
+          playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player2.name)
 
           console.log "AFTER PLAYER 2 JOINED == #{@player2}"
 
@@ -177,54 +183,21 @@ ready = () ->
 
     restoreGameState: ->
       if !@isEmpty(@gameData) && @p2ID == undefined
-        console.log "Setting vars from localStorage"
         # new game..."
-        playing_as = localStorage.getItem('playing_as')
-        if playing_as == null
-          localStorage.setItem('playing_as', 'p1')
-          playing_as = 'p1'
-
-        playing_as_id = localStorage.getItem('playing_as_id')
-        if playing_as_id == null
-          localStorage.setItem('playing_as_id', @player1.id)
-          playing_as_id = @player1.id
-
-        playing_as_name = localStorage.getItem('playing_as_name')
-        if playing_as_name == null
-          localStorage.setItem('playing_as_name', @player1.name)
-          playing_as_name = @player1.name
+        playing_as = 'playing_as'.getOrCreateStore('p1')
+        playing_as_id = 'playing_as_id'.getOrCreateStore(@player1.id)
+        playing_as_name = 'playing_as_name'.getOrCreateStore(@player1.name)
 
         @disableUI()
       else if !@isEmpty(@gameData) && @p2ID != undefined
-        playing_as = localStorage.getItem('playing_as')
-        if playing_as == null
-          localStorage.setItem('playing_as', 'p2')
-          playing_as = 'p2'
+        # player 2 joined
+        playing_as = 'playing_as'.getOrCreateStore('p2')
+        playing_as_id = 'playing_as_id'.getOrCreateStore(@player2.id)
+        playing_as_name = 'playing_as_name'.getOrCreateStore(@player2.name)
 
-        playing_as_id = localStorage.getItem('playing_as_id')
-        if playing_as_id == null
-          localStorage.setItem('playing_as_id', @player2.id)
-          playing_as_id = @player2.id
-
-        playing_as_name = localStorage.getItem('playing_as_name')
-        if playing_as_name == null
-          localStorage.setItem('playing_as_name', @player2.name)
-          playing_as_name = @player2.name
-
-        playing_vs = localStorage.getItem('playing_vs')
-        if playing_vs == null
-          localStorage.setItem('playing_vs', 'p1')
-          playing_vs = 'p1'
-
-        playing_vs_id = localStorage.getItem('playing_vs_id')
-        if playing_vs_id == null
-          localStorage.setItem('playing_vs_id', @player1.id)
-          playing_vs_id = @player1.id
-
-        playing_vs_name = localStorage.getItem('playing_vs_name')
-        if playing_vs_name == null
-          localStorage.setItem('playing_vs_name', @player1.name)
-          playing_vs_name = @player1.name
+        playing_vs = 'playing_vs'.getOrCreateStore('p1')
+        playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player1.id)
+        playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player1.name)
 
         color = @players[playing_as + '-color']
         $('#chip').css
@@ -234,10 +207,10 @@ ready = () ->
 
         @disableUI()
 
-      console.log "restoreGameState: #{window.location.href == @root_url}"
 
       if window.location.href == @root_url
-        @setVarsToPristine();
+        console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
+        @setVarsToPristine()
 
 
 
@@ -616,51 +589,17 @@ ready = () ->
   # initialize game data either from API or localStorage
   # ====================
   checkStorage = () ->
-    # set root_url
-    # localStorage.setItem('root_url', '')
-    root_url = localStorage.getItem('root_url')
-    if root_url.length == 0
-      root_url = gon.root_url
-      console.log "SETTING ROOT: #{root_url} || #{localStorage.getItem('root_url')}"
-      localStorage.setItem('root_url', root_url)
+    root_url = 'root_url'.getOrCreateStore(gon.root_url)
+    gameData = 'gameData'.getOrCreateStore(gon.game)
+    player1 = 'player1'.getOrCreateStore(gon.player1)
+    player2 = 'player2'.getOrCreateStore(gon.player2)
+    moves = 'moves'.getOrCreateStore([])
 
-    # set gameData
-    localStorage.setItem('gameData', [])
-    gameData = localStorage.getItem('gameData')
-    if gameData.length == 0
-      gameData = gon.game
-      localStorage.setItem('gameData', JSON.stringify(gameData))
-    else
-      gameData = JSON.parseJSON(gameData)
-
-    # set player1
-    localStorage.setItem('player1', [])
-    player1 = localStorage.getItem('player1')
-    if player1.length == 0
-      player1 = gon.player1
-      localStorage.setItem('player1', JSON.stringify(player1))
-    else
-      player1 = JSON.parseJSON(player1)
-
-    # set player2
-    localStorage.setItem('player2', [])
-    player2 = localStorage.getItem('player2')
-    if player2.length == 0
-      if gon.player2
-        player2 = gon.player2
-        localStorage.setItem('player2', JSON.stringify(player2))
-    else
-      player2 = JSON.parseJSON(player2)
-
-    # set moves
-    localStorage.setItem('moves', [])
-    moves = localStorage.getItem('moves')
-    if moves.length == 0
-      moves = []
-    else
-      console.log "exising game moves! #{JSON.stringify(moves)}"
-      moves = JSON.parseJSON(moves)
-
+    console.log "checkStorage: gameData == #{gameData} || #{gon.game}"
+    console.log "checkStorage: player1 == #{player1}"
+    console.log "checkStorage: player2 == #{player2}"
+    console.log "checkStorage: moves == #{moves}"
+    console.log "checkStorage: root_url == #{root_url}"
 
 
     vars =

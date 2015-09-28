@@ -1,8 +1,8 @@
 
 
 ready = () ->
-  String.prototype.getOrCreateStore = (defaultValue) ->
 
+  String.prototype.getOrCreateStore = (defaultValue) ->
     value = localStorage.getItem(@)
     if value == null
       localStorage.setItem(@, defaultValue)
@@ -19,9 +19,9 @@ ready = () ->
     playing_vs_id = null
     playing_vs_name = ''
 
-    # ==========================================
+    # **********************************************************
     # CONSTRUCTOR
-    # ==========================================
+    # **********************************************************
     constructor: (gameData, player1, player2, moves, root_url) ->
       # variable assignment
       @gameData = gameData
@@ -63,34 +63,6 @@ ready = () ->
       # restore state from given data
       @restoreGameState()
 
-    setVarsToPristine: ->
-      playing_as = ''
-      playing_as_id = null
-      playing_as_name = ''
-      playing_vs = ''
-      playing_vs_id = null
-      playing_vs_name = ''
-      @gameData = {}
-      @player1 = {}
-      @player2 = {}
-      @moves = []
-      @players.p1 = 0
-      @players.p2 = 0
-      @gameID = 0
-      @p1ID = 0
-      @p2ID = 0
-
-      #reset
-      localStorage.removeItem('gameData')
-      localStorage.removeItem('player1')
-      localStorage.removeItem('player2')
-      localStorage.removeItem('moves')
-      localStorage.removeItem('playing_as')
-      localStorage.removeItem('playing_as_id')
-      localStorage.removeItem('playing_as_name')
-      localStorage.removeItem('playing_vs')
-      localStorage.removeItem('playing_vs_id')
-      localStorage.removeItem('playing_vs_name')
 
     # **********************************************************
     # FAYE SUBSCRIPTIONS
@@ -146,14 +118,12 @@ ready = () ->
 
 
     # **********************************************************
-    # FAYE SUBSCRIPTIONS END
+    # UTILITY
     # **********************************************************
 
-
-    # =============================================
-    # UTILITY
-    # =============================================
-
+    # -----------------------
+    # isEmpty
+    # -----------------------
     isEmpty: (obj) ->
       return true if obj == null || obj == undefined
 
@@ -170,17 +140,23 @@ ready = () ->
 
       return true
 
-
+    # -----------------------
+    # enableUI
+    # -----------------------
     enableUI: ->
       $('#displaybox').removeClass('overlay').addClass('hidden')
       $('#loader > i').addClass('hidden')
 
-
+    # -----------------------
+    # disableUI
+    # -----------------------
     disableUI: ->
       $('#displaybox').removeClass('hidden').addClass('overlay')
       $('#loader > i').removeClass('hidden')
 
-
+    # -----------------------
+    # restoreGameState
+    # -----------------------
     restoreGameState: ->
       if !@isEmpty(@gameData) && @p2ID == undefined
         # new game..."
@@ -212,6 +188,37 @@ ready = () ->
         console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
         @setVarsToPristine()
 
+    # -----------------------
+    # setVarsToPristine
+    # -----------------------
+    setVarsToPristine: ->
+      playing_as = ''
+      playing_as_id = null
+      playing_as_name = ''
+      playing_vs = ''
+      playing_vs_id = null
+      playing_vs_name = ''
+      @gameData = {}
+      @player1 = {}
+      @player2 = {}
+      @moves = []
+      @players.p1 = 0
+      @players.p2 = 0
+      @gameID = 0
+      @p1ID = 0
+      @p2ID = 0
+
+      #reset
+      localStorage.removeItem('gameData')
+      localStorage.removeItem('player1')
+      localStorage.removeItem('player2')
+      localStorage.removeItem('moves')
+      localStorage.removeItem('playing_as')
+      localStorage.removeItem('playing_as_id')
+      localStorage.removeItem('playing_as_name')
+      localStorage.removeItem('playing_vs')
+      localStorage.removeItem('playing_vs_id')
+      localStorage.removeItem('playing_vs_name')
 
 
     # **********************************************************
@@ -389,10 +396,6 @@ ready = () ->
       diagonalBLtoTRWin(pos) || diagonalBRtoTLWin(pos)
 
     # -----------------------
-    # diagonalWin - END
-    # -----------------------
-
-    # -----------------------
     # checkWinner
     # -----------------------
     checkWinner: (pos) ->
@@ -404,24 +407,31 @@ ready = () ->
     # checkTie
     # -----------------------
 
-    # **********************************************************
-    # WINNER VERIFICATION - END
-    # **********************************************************
 
-    # =============================================
+
+    # **********************************************************
     # METHODS
-    # =============================================
+    # **********************************************************
 
+    # -----------------------
+    # processOpponentTurn
+    # -----------------------
     processOpponentTurn: (moveData) ->
       @setMoveToUI moveData.x_pos, moveData.y_pos, playing_vs
       # gameData = gameData
       # gon.gameData = gameData
       @enableUI()
 
+    # -----------------------
+    # updateScores
+    # -----------------------
     updateScores: (winner_id) ->
       # TODO: scores update
       console.log "update scores"
 
+    # -----------------------
+    # showWinnerModal
+    # -----------------------
     showWinnerModal: (winner_id) ->
       player_name = if winner_id == playing_as_id then playing_as_name else playing_vs_name
       player = if winner_id == playing_as_id then playing_as else playing_vs
@@ -438,10 +448,16 @@ ready = () ->
         keyboard: false
       )
 
+    # -----------------------
+    # setEndUI
+    # -----------------------
     setEndUI: (winner_id) ->
       @updateScores(winner_id)
       @showWinnerModal(winner_id)
 
+    # -----------------------
+    # verifyGameState
+    # -----------------------
     verifyGameState: (pos) ->
       # TODO: handle draw
       if @checkWinner(pos)
@@ -456,7 +472,6 @@ ready = () ->
           success: (data) =>
             console.log "GAME OVER"
             @setEndUI(data.winner_id)
-
 
     # -----------------------
     # setMoveToUI
@@ -478,7 +493,6 @@ ready = () ->
     # -----------------------
     updateMoveState: ->
       @disableUI()
-
 
     # -----------------------
     # makeMove
@@ -533,9 +547,9 @@ ready = () ->
       positionX = if positionX < 0 then 0 else positionX
       positionX = if positionX > width then width else positionX
 
-    # =============================================
+    # **********************************************************
     # EVENTS
-    # =============================================
+    # **********************************************************
     manageEvents: ->
       $('#gameBoard').on('mousemove', (e) =>
         position = @getXPosition($('#gameBoard'), e.pageX)
@@ -584,10 +598,10 @@ ready = () ->
 
 
 
+  # **********************************************************
+  # GAME INITIALIZATION
+  # **********************************************************
 
-  # ====================
-  # initialize game data either from API or localStorage
-  # ====================
   checkStorage = () ->
     root_url = 'root_url'.getOrCreateStore(gon.root_url)
     gameData = 'gameData'.getOrCreateStore(gon.game)

@@ -6,13 +6,13 @@ ready = () ->
     force = if force == undefined then false else true
     value = localStorage.getItem(@) unless force
     if value == null || value == undefined || value == 'undefined'
-      console.log "getOrCreateStore key:#{@}: returning passed data with #{defaultValue}"
+      console.log "getOrCreateStore key:#{@} = returning passed data with #{defaultValue}"
       localStorage.setItem(@, defaultValue)
       return defaultValue # return default
-      
+
     # return from storage
-    console.log "getOrCreateStore key:#{@}: returning defaults with #{value}"
-    return value
+    console.log "getOrCreateStore key:#{@} = returning defaults with #{value}"
+    return value #JSON.parse("#{value}")
 
 
   class ConnectFour
@@ -27,12 +27,23 @@ ready = () ->
     # CONSTRUCTOR
     # **********************************************************
     constructor: (gameData, player1, player2, moves, root_url) ->
+      console.log "<< CONSTRUCTOR >>"
       # variable assignment
-      @gameData = gameData
-      @player1 = player1
-      @player2 = player2
-      @moves = moves
-      @root_url = root_url
+      if gameData != undefined && gameData != null
+        console.log "pass gamedata == #{JSON.parse(gameData)}"
+        @gameData = JSON.parse(gameData)
+      if player1 != undefined && player1 != null
+        console.log "pass player1 == #{JSON.parse(player1)}"
+        @player1 = JSON.parse(player1)
+      if player2 != undefined && player2 != null
+        console.log "pass player2 == #{player2}"
+        @player2 = JSON.parse(player2)
+      if moves != undefined && moves != null
+        console.log "pass moves == #{moves}"
+        @moves = moves
+      if root_url != undefined && root_url != null
+        console.log "pass root_url == #{root_url}"
+        @root_url = root_url
 
       console.log "constructor: gameData == #{@gameData}"
       console.log "constructor: player1 == #{@player1}"
@@ -57,18 +68,18 @@ ready = () ->
 
       @p1Score = 0
       @p2Score = 0
+      @player_turn = 0
 
-      @gameID = gameData.id if gameData
-      if player1
-        console.log "assigning player1 id"
-        @p1ID = player1.id
-        @players.p1 = player1.id
-      if player2
-        @p2ID = player2.id
-        @players.p2 = player2.id
+      if @gameData
+        console.log "setting game ID == #{@gameData.id}"
+        @gameID = @gameData.id
+      if @player1
+        @p1ID = @player1.id
+        @players.p1 = @player1.id
+      if @player2
+        @p2ID = @player2.id
+        @players.p2 = @player2.id
 
-      # console.log "@player1 == #{@player}"
-      # restore state from given data
       @restoreGameState()
 
 
@@ -87,12 +98,15 @@ ready = () ->
 
         console.log "subscription: /play/#{@gameID}/join"
         faye.subscribe("/play/#{@gameID}/join", (data) =>
-          @player2 = 'player2'.getOrCreateStore(data.player2)
+          @player2 = JSON.parse('player2'.getOrCreateStore(JSON.stringify(data.player2), true))
+
+          console.log "manageSubscriptions: @player2 = #{@player2}"
+
           @p2ID = @player2.id
           @players.p2 = @player2.id
-          playing_vs = 'playing_vs'.getOrCreateStore('p2')
-          playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player2.id)
-          playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player2.name)
+          playing_vs = 'playing_vs'.getOrCreateStore('p2', true)
+          playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player2.id, true)
+          playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player2.name, true)
 
           $('#player2 p:first').text("Name: #{@player2.name}")
           $('#header h3:first').text(@gameData.title)
@@ -118,6 +132,10 @@ ready = () ->
             @processOpponentTurn(moveData)
             @moves.push moveData
             localStorage.setItem('moves', JSON.stringify(@moves))
+            turn = if @player_turn == 'p1' then 'p2' else 'p1'
+
+            console.log "/turn: Assigning player's turn: #{turn}"
+            @player_turn = 'player_turn'.getOrCreateStore(turn, true)
         )
 
         console.log "subscription: /play/#{@gameID}/destroyed"
@@ -191,6 +209,8 @@ ready = () ->
         playing_as = 'playing_as'.getOrCreateStore('p1')
         playing_as_id = 'playing_as_id'.getOrCreateStore(@player1.id)
         playing_as_name = 'playing_as_name'.getOrCreateStore(@player1.name)
+        @player_turn = 'player_turn'.getOrCreateStore('p1')
+        console.log "refresh 1!!! #{@p2ID}"
 
         @disableUI()
       else if !@isEmpty(@gameData) && @p2ID != undefined
@@ -203,6 +223,8 @@ ready = () ->
         playing_vs_id = 'playing_vs_id'.getOrCreateStore(@player1.id)
         playing_vs_name = 'playing_vs_name'.getOrCreateStore(@player1.name)
 
+        @player_turn = 'player_turn'.getOrCreateStore('p1')
+
         color = @players[playing_as + '-color']
         $('#chip').css
           background: color
@@ -213,10 +235,13 @@ ready = () ->
         $('#resetGame').prop
           'disabled': true
 
-        @disableUI()
+        # TODO: HERE.
+        # where to really set p2???
+        # refresh on p1 causes loading...
+        console.log "refresh 2!!!"
+        @disableUI() if playing_as_id != @player_turn
 
-
-      if window.location.href == @root_url
+      if @root_url == window.location.href
         console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
         @setVarsToPristine()
 
@@ -253,7 +278,9 @@ ready = () ->
       localStorage.removeItem('playing_vs')
       localStorage.removeItem('playing_vs_id')
       localStorage.removeItem('playing_vs_name')
+      localStorage.removeItem('player_turn')
 
+      @enableUI()
 
     # **********************************************************
     # WINNER VERIFICATION - START
@@ -460,7 +487,6 @@ ready = () ->
     # updateScores
     # -----------------------
     updateScores: (winner_id) ->
-      # TODO: scores update
       console.log "update scores"
 
       @p1Score += 1 if winner_id == @player1.id
@@ -570,6 +596,9 @@ ready = () ->
         success: (data) =>
           @moves.push data
           @moves = 'moves'.getOrCreateStore(@moves, true)
+          turn = if @player_turn == 'p1' then 'p2' else 'p1'
+          console.log "on move: Assigning player's turn: #{turn}"
+          @player_turn = 'player_turn'.getOrCreateStore(turn, true)
           # localStorage.setItem('moves', JSON.stringify(@moves))
           @setMoveToUI x_axis, y_axis, playing_as
           # switch player
@@ -670,16 +699,17 @@ ready = () ->
 
   checkStorage = () ->
     root_url = 'root_url'.getOrCreateStore(gon.root_url)
-    gameData = 'gameData'.getOrCreateStore(gon.game)
-    player1 = 'player1'.getOrCreateStore(gon.player1)
-    player2 = 'player2'.getOrCreateStore(gon.player2)
+    gameData = 'gameData'.getOrCreateStore(JSON.stringify(gon.game))
+    player1 = 'player1'.getOrCreateStore(JSON.stringify(gon.player1))
+    player2 = 'player2'.getOrCreateStore(JSON.stringify(gon.player2))
     moves = 'moves'.getOrCreateStore([])
 
-    console.log "checkStorage: gameData == #{gameData} || #{gon.game}"
+    console.log "checkStorage: root_url == #{root_url}"
+    console.log "checkStorage: gameData == #{gameData}"
     console.log "checkStorage: player1 == #{player1}"
     console.log "checkStorage: player2 == #{player2}"
     console.log "checkStorage: moves == #{moves}"
-    console.log "checkStorage: root_url == #{root_url}"
+
 
     vars =
       gameData: gameData

@@ -1,6 +1,6 @@
 # **An implementation of the [Connect Four](http://en.wikipedia.org/wiki/Connect_Four) game on Ruby on Rails**
 
-Below are the features of the game:
+### Features
 
 1. **User Account Management**
 
@@ -8,7 +8,10 @@ Below are the features of the game:
 
 3. **Score Tracking**
 
-This is also developed using the following tools:
+
+### Tools
+
+This app was developed using the following tools:
 
 1. [Faye PubSub](http://faye.jcoglan.com/)
 
@@ -25,3 +28,18 @@ This is also developed using the following tools:
 4. [Delayed Job](https://github.com/collectiveidea/delayed_job_active_record)
 
    Used to queue message events published to the Faye server.
+
+
+### Todo
+
+1. Implement AI
+
+2. Improve Design
+
+3. Profile Score/Highest Scores Board
+
+
+
+### Known Issues
+
+1. Refreshing page during game resets the entire game

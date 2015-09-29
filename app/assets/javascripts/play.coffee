@@ -28,6 +28,7 @@ ready = () ->
     # **********************************************************
     constructor: (gameData, player1, player2, moves, root_url) ->
       console.log "<< CONSTRUCTOR >>"
+
       # variable assignment
       if gameData != undefined && gameData != null
         console.log "pass gamedata == #{JSON.parse(gameData)}"
@@ -36,11 +37,11 @@ ready = () ->
         console.log "pass player1 == #{JSON.parse(player1)}"
         @player1 = JSON.parse(player1)
       if player2 != undefined && player2 != null
-        console.log "pass player2 == #{player2}"
+        console.log "pass player2 == #{JSON.parse(player2)}"
         @player2 = JSON.parse(player2)
       if moves != undefined && moves != null
-        console.log "pass moves == #{moves}"
-        @moves = moves
+        console.log "pass moves == #{JSON.parse(moves)}"
+        @moves = JSON.parse(moves)
       if root_url != undefined && root_url != null
         console.log "pass root_url == #{root_url}"
         @root_url = root_url
@@ -51,36 +52,43 @@ ready = () ->
       console.log "constructor: moves == #{@moves}"
       console.log "constructor: root_url == #{@root_url}"
 
-      # set defaults
-      @x_axis_limits =
-        x0: 50,
-        x1: 100,
-        x2: 150,
-        x3: 200,
-        x4: 250,
-        x5: 300,
-        x6: 350
       @players =
         p1: 0,
         'p1-color': '#d9534f',
         p2: 0,
         'p2-color': '#cfeb22'
 
-      @p1Score = 0
-      @p2Score = 0
-      @player_turn = 0
+      if @root_url == window.location.href
+        console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
+        @setVarsToPristine()
+      else
 
-      if @gameData
-        console.log "setting game ID == #{@gameData.id}"
-        @gameID = @gameData.id
-      if @player1
-        @p1ID = @player1.id
-        @players.p1 = @player1.id
-      if @player2
-        @p2ID = @player2.id
-        @players.p2 = @player2.id
+        # set defaults
+        @x_axis_limits =
+          x0: 50,
+          x1: 100,
+          x2: 150,
+          x3: 200,
+          x4: 250,
+          x5: 300,
+          x6: 350
 
-      @restoreGameState()
+
+        @p1Score = 0
+        @p2Score = 0
+        @player_turn = 0
+
+        if @gameData
+          console.log "setting game ID == #{@gameData.id}"
+          @gameID = @gameData.id
+        if @player1
+          @p1ID = @player1.id
+          @players.p1 = @player1.id
+        if @player2
+          @p2ID = @player2.id
+          @players.p2 = @player2.id
+
+        @restoreGameState()
 
 
     # **********************************************************
@@ -132,8 +140,8 @@ ready = () ->
             @processOpponentTurn(moveData)
             @moves.push moveData
             localStorage.setItem('moves', JSON.stringify(@moves))
-            turn = if @player_turn == 'p1' then 'p2' else 'p1'
 
+            turn = if @player_turn == 'p1' then 'p2' else 'p1'
             console.log "/turn: Assigning player's turn: #{turn}"
             @player_turn = 'player_turn'.getOrCreateStore(turn, true)
         )
@@ -235,15 +243,9 @@ ready = () ->
         $('#resetGame').prop
           'disabled': true
 
-        # TODO: HERE.
-        # where to really set p2???
-        # refresh on p1 causes loading...
-        console.log "refresh 2!!!"
-        @disableUI() if playing_as_id != @player_turn
 
-      if @root_url == window.location.href
-        console.log "restoreGameState: INDEX #{window.location.href == @root_url}"
-        @setVarsToPristine()
+        @disableUI() if playing_as != @player_turn
+
 
       @setGameReset()
 
@@ -568,6 +570,7 @@ ready = () ->
       # -----------------------
       getY = (x_axis) =>
         y_axis = 0
+        console.log "getY: @moves = #{@moves}"
         for y in [0..6]
           result = @moves.filter (move) ->
             if parseInt(move.x_pos) == x_axis && parseInt(move.y_pos) == y
@@ -595,7 +598,7 @@ ready = () ->
           move: moveData
         success: (data) =>
           @moves.push data
-          @moves = 'moves'.getOrCreateStore(@moves, true)
+          @moves = JSON.parse('moves'.getOrCreateStore(JSON.stringify(@moves), true))
           turn = if @player_turn == 'p1' then 'p2' else 'p1'
           console.log "on move: Assigning player's turn: #{turn}"
           @player_turn = 'player_turn'.getOrCreateStore(turn, true)
@@ -702,7 +705,7 @@ ready = () ->
     gameData = 'gameData'.getOrCreateStore(JSON.stringify(gon.game))
     player1 = 'player1'.getOrCreateStore(JSON.stringify(gon.player1))
     player2 = 'player2'.getOrCreateStore(JSON.stringify(gon.player2))
-    moves = 'moves'.getOrCreateStore([])
+    moves = 'moves'.getOrCreateStore(JSON.stringify([]))
 
     console.log "checkStorage: root_url == #{root_url}"
     console.log "checkStorage: gameData == #{gameData}"
